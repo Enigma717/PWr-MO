@@ -16,23 +16,20 @@ public:
     void load_file(const std::string& file_path);
     void create_weight_matrix();
 
-    std::string print_model_parms();
-    std::string print_nodes();
-    std::string print_nodes(const std::vector<Node>& solution);
-    std::string print_weight_matrix();
+    std::string print_model_parms() const;
+    std::string print_nodes() const;
+    std::string print_weight_matrix() const;
 
-    double objective_function();
-    double objective_function(const std::vector<Node>& solution);
-    double prd(double objective_sum);
+    double objective_function(const std::vector<Node>& solution) const;
+    double prd(double objective_sum) const;
 
     std::vector<Node> k_random_solution(std::uint64_t k);
-    std::vector<Node> nearest_neighbour(std::uint16_t starting_point);
-    std::vector<Node> extended_nearest_neighbour();
+    std::vector<Node> nearest_neighbour(std::uint16_t starting_point) const;
+    std::vector<Node> extended_nearest_neighbour() const;
 
 private:
     ModelParams model_params;
     Loader loader;
-    GeneticSolver genetic_solver;
 
     std::random_device rd;
     std::mt19937 rng{rd()};
@@ -42,4 +39,8 @@ private:
 
     friend class Loader;
     friend class GeneticSolver;
+
+public:
+    GeneticSolver genetic_solver;
+
 };

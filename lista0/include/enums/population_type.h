@@ -2,5 +2,6 @@
 
 enum class PopulationType {
     random,
-    neighbour
+    neighbour,
+    mixed
 };

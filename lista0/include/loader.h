@@ -2,6 +2,8 @@
 
 #include "./enums/problem_type.h"
 
+#include <string>
+
 class Model;
 
 class Loader {

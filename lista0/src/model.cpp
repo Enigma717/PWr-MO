@@ -1,4 +1,5 @@
 #include "../include/model.h"
+#include "../include/stream_operators.h"
 
 #include <iostream>
 #include <algorithm>
@@ -41,7 +42,7 @@ void Model::create_weight_matrix()
     }
 }
 
-std::string Model::print_model_parms()
+std::string Model::print_model_parms() const
 {
     std::stringstream stream;
     stream << "-> Model parameters:"
@@ -59,14 +60,13 @@ std::string Model::print_model_parms()
     return stream.str();
 }
 
-std::string Model::print_nodes()
+std::string Model::print_nodes() const
 {
     std::stringstream stream;
 
     stream << "[";
 
     for (std::size_t i {0uz}; i < nodes.size(); i++) {
-        // stream << i << ":" << nodes.at(i).index;
         stream << nodes.at(i).index;
 
         if (i != nodes.size() - 1)
@@ -78,26 +78,7 @@ std::string Model::print_nodes()
     return stream.str();
 }
 
-std::string Model::print_nodes(const std::vector<Node>& solution)
-{
-    std::stringstream stream;
-
-    stream << "[";
-
-    for (std::size_t i {0uz}; i < solution.size(); i++) {
-        // stream << i << ":" << solution.at(i).index;
-        stream << solution.at(i).index;
-
-        if (i != solution.size() - 1)
-            stream << ", ";
-    }
-
-    stream << "]";
-
-    return stream.str();
-}
-
-std::string Model::print_weight_matrix()
+std::string Model::print_weight_matrix() const
 {
     std::stringstream stream;
 
@@ -107,7 +88,6 @@ std::string Model::print_weight_matrix()
         for (std::size_t j {0uz}; j < weights.at(i).size(); j++) {
             const double neighbour {weights.at(i).at(j)};
 
-            // stream << j << ":" << neighbour;
             stream << neighbour;
 
             if (j != weights.at(i).size() - 1)
@@ -120,28 +100,7 @@ std::string Model::print_weight_matrix()
     return stream.str();
 }
 
-double Model::objective_function()
-{
-    double objective_sum {0.0};
-
-    for (std::size_t i {0uz}; i < nodes.size(); i++) {
-        const std::uint16_t source {nodes.at(i).index};
-        std::uint16_t destination {0u};
-
-        if (i == nodes.size() - 1)
-            destination = nodes.at(0).index;
-        else
-            destination = nodes.at(i + 1).index;
-
-        const double distance {weights.at(source - 1).at(destination - 1)};
-
-        objective_sum += distance;
-    }
-
-    return objective_sum;
-}
-
-double Model::objective_function(const std::vector<Node>& solution)
+double Model::objective_function(const std::vector<Node>& solution) const
 {
     double objective_sum {0.0};
 
@@ -162,7 +121,7 @@ double Model::objective_function(const std::vector<Node>& solution)
     return objective_sum;
 }
 
-double Model::prd(double objective_sum)
+double Model::prd(double objective_sum) const
 {
     return 100.0 * ((objective_sum - optimum) / optimum);
 }
@@ -184,7 +143,7 @@ std::vector<Node> Model::k_random_solution(std::uint64_t k)
     return solution;
 }
 
-std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index)
+std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index) const
 {
     std::vector<bool> node_visit_status(model_params.dimension);
     std::vector<Node> solution {nodes};
@@ -223,7 +182,7 @@ std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index)
     return solution;
 }
 
-std::vector<Node> Model::extended_nearest_neighbour()
+std::vector<Node> Model::extended_nearest_neighbour() const
 {
     std::vector<Node> solution {nodes};
 

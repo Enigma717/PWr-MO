@@ -7,5 +7,5 @@
 
 struct Member {
     std::vector<Node> solution;
-    double objective {0.0};
+    double fitness {0.0};
 };

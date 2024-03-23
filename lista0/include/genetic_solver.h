@@ -10,7 +10,10 @@ public:
     GeneticSolver() = delete;
     GeneticSolver(Model& model_ref);
 
-    void initialize_population(PopulationType population_type, std::uint32_t size);
+    void initialize_population(PopulationType population_type, std::size_t size);
+    void print_population();
+
+    std::vector<Member> tournament_selection(std::size_t subgroup_size);
 
 private:
     Model& model_ref;
@@ -18,4 +21,5 @@ private:
 
     void random_initialization();
     void neighbour_initialization();
+    void mixed_initialization();
 };
