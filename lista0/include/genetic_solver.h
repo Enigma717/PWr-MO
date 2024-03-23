@@ -1,7 +1,7 @@
 #pragma once
 
 #include "./enums/population_type.h"
-#include "./structs/human.h"
+#include "./structs/member.h"
 
 class Model;
 
@@ -14,7 +14,7 @@ public:
 
 private:
     Model& model_ref;
-    std::vector<Human> population;
+    std::vector<Member> population;
 
     void random_initialization();
     void neighbour_initialization();

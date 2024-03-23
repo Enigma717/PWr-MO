@@ -16,20 +16,20 @@ void GeneticSolver::initialize_population(
 
 void GeneticSolver::random_initialization()
 {
-    for (auto& population_member : population) {
-        population_member.solution = model_ref.k_random_solution(100);
-        population_member.objective = model_ref.objective_function(population_member.solution);
+    for (auto& member : population) {
+        member.solution = model_ref.k_random_solution(100);
+        member.objective = model_ref.objective_function(member.solution);
     }
 }
 
 void GeneticSolver::neighbour_initialization()
 {
     for (size_t member_position {0}; member_position < population.size(); member_position++) {
-        auto& population_member {population.at(member_position)};
+        auto& member {population.at(member_position)};
         const std::uint16_t starting_node_index {
             static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
 
-        population_member.solution = model_ref.nearest_neighbour(starting_node_index);
-        population_member.objective = model_ref.objective_function(population_member.solution);
+        member.solution = model_ref.nearest_neighbour(starting_node_index);
+        member.objective = model_ref.objective_function(member.solution);
     }
 }

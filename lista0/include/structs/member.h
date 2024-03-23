@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-struct Human {
+struct Member {
     std::vector<Node> solution;
     double objective {0.0};
 };

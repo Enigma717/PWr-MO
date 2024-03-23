@@ -11,7 +11,7 @@ namespace
 
     double euc_distance(Node first_node, Node second_node)
     {
-        const auto result {
+        const double result {
             std::sqrt(std::pow((first_node.x_coord - second_node.x_coord), 2) +
             std::pow((first_node.y_coord - second_node.y_coord), 2))};
 
@@ -29,11 +29,11 @@ void Model::load_file(const std::string& file_path)
 
 void Model::create_weight_matrix()
 {
-    for (auto i {0}; i < model_params.dimension; i++) {
-        const auto& node {nodes.at(i)};
+    for (std::size_t i {0uz}; i < model_params.dimension; i++) {
+        const Node& node {nodes.at(i)};
 
-        for (auto j {0}; j < model_params.dimension; j++) {
-            const auto& neighbour {nodes.at(j)};
+        for (std::size_t j {0uz}; j < model_params.dimension; j++) {
+            const Node& neighbour {nodes.at(j)};
 
             if (node.index != neighbour.index)
                 weights.at(i).at(j) = euc_distance(neighbour, node );
@@ -65,7 +65,7 @@ std::string Model::print_nodes()
 
     stream << "[";
 
-    for (std::size_t i {0}; i < nodes.size(); i++) {
+    for (std::size_t i {0uz}; i < nodes.size(); i++) {
         // stream << i << ":" << nodes.at(i).index;
         stream << nodes.at(i).index;
 
@@ -84,7 +84,7 @@ std::string Model::print_nodes(const std::vector<Node>& solution)
 
     stream << "[";
 
-    for (std::size_t i {0}; i < solution.size(); i++) {
+    for (std::size_t i {0uz}; i < solution.size(); i++) {
         // stream << i << ":" << solution.at(i).index;
         stream << solution.at(i).index;
 
@@ -101,11 +101,11 @@ std::string Model::print_weight_matrix()
 {
     std::stringstream stream;
 
-    for (std::size_t i {0}; i < weights.size(); i++) {
+    for (std::size_t i {0uz}; i < weights.size(); i++) {
         stream << "\nNode(" << i << ")\t[";
 
-        for (std::size_t j {0}; j < weights.at(i).size(); j++) {
-            const auto neighbour {weights.at(i).at(j)};
+        for (std::size_t j {0uz}; j < weights.at(i).size(); j++) {
+            const double neighbour {weights.at(i).at(j)};
 
             // stream << j << ":" << neighbour;
             stream << neighbour;
@@ -124,23 +124,18 @@ double Model::objective_function()
 {
     double objective_sum {0.0};
 
-    for (std::size_t i {0}; i < nodes.size(); i++) {
-        const auto source {nodes.at(i).index};
-        auto destination {0};
+    for (std::size_t i {0uz}; i < nodes.size(); i++) {
+        const std::uint16_t source {nodes.at(i).index};
+        std::uint16_t destination {0u};
 
         if (i == nodes.size() - 1)
             destination = nodes.at(0).index;
         else
             destination = nodes.at(i + 1).index;
 
-        const auto distance {weights.at(source - 1).at(destination - 1)};
+        const double distance {weights.at(source - 1).at(destination - 1)};
 
         objective_sum += distance;
-
-        // std::cout << ">>> SOURCE: " << source << "\n";
-        // std::cout << ">>> DESTINATION: " << destination << "\n";
-        // std::cout << ">>> DIST: " << distance << "\n";
-        // std::cout << ">>> SUM: " << objective_sum << "\n";
     }
 
     return objective_sum;
@@ -150,16 +145,16 @@ double Model::objective_function(const std::vector<Node>& solution)
 {
     double objective_sum {0.0};
 
-    for (std::size_t i {0}; i < solution.size(); i++) {
-        const auto source {solution.at(i).index};
-        auto destination {0};
+    for (std::size_t i {0uz}; i < solution.size(); i++) {
+        const std::uint16_t source {solution.at(i).index};
+        std::uint16_t destination {0};
 
         if (i == solution.size() - 1)
             destination = solution.at(0).index;
         else
             destination = solution.at(i + 1).index;
 
-        const auto distance {weights.at(source - 1).at(destination - 1)};
+        const double distance {weights.at(source - 1).at(destination - 1)};
 
         objective_sum += distance;
     }
@@ -178,7 +173,7 @@ std::vector<Node> Model::k_random_solution(std::uint64_t k)
     double distance {objective_function(solution)};
     double temp_distance {distance};
 
-    for (size_t i {0}; i < k; i++) {
+    for (std::size_t i {0uz}; i < k; i++) {
         std::shuffle(solution.begin(), solution.end(), rng);
         temp_distance = objective_function(solution);
 
@@ -200,12 +195,12 @@ std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index)
 
     solution.at(0) = starting_node;
     node_visit_status.at(starting_node_position) = true;
-    std::uint16_t best_neighbour_position {0};
+    std::uint16_t best_neighbour_position {0u};
 
-    for (size_t processed_position {0}; processed_position < model_params.dimension - 1;) {
+    for (std::size_t processed_position {0uz}; processed_position < model_params.dimension - 1;) {
         double best_distance {9999.0};
 
-        for (size_t neighbour_position {0}; neighbour_position < node_visit_status.size(); neighbour_position++) {
+        for (std::size_t neighbour_position {0uz}; neighbour_position < node_visit_status.size(); neighbour_position++) {
             if (node_visit_status.at(neighbour_position) == false) {
                 const std::uint16_t processed_node_position {
                     static_cast<std::uint16_t>(solution.at(processed_position).index - 1)};
@@ -218,7 +213,7 @@ std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index)
             }
         }
 
-        const auto neighbour_node {nodes.at(best_neighbour_position)};
+        const Node neighbour_node {nodes.at(best_neighbour_position)};
 
         processed_position++;
         solution.at(processed_position) = neighbour_node;
@@ -232,8 +227,9 @@ std::vector<Node> Model::extended_nearest_neighbour()
 {
     std::vector<Node> solution {nodes};
 
-    for (size_t starting_index {1}; starting_index <= model_params.dimension; starting_index++) {
-        const auto temp_solution {nearest_neighbour(starting_index)};
+    for (std::size_t starting_index {1uz}; starting_index <= model_params.dimension; starting_index++) {
+        const std::vector<Node> temp_solution {nearest_neighbour(starting_index)};
+
         if (objective_function(solution) > objective_function(temp_solution))
             solution = temp_solution;
     }
