@@ -31,9 +31,11 @@ int main()
     // const auto distance {model.objective_function(solution)};
     // const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 
-    model.genetic_solver.initialize_population(PopulationType::mixed, 100);
+    model.genetic_solver.initialize_population(PopulationType::mixed, 10);
     model.genetic_solver.print_population();
-    model.genetic_solver.tournament_selection(4);
+    model.genetic_solver.tournament_selection(5);
+    model.genetic_solver.ordered_crossover(
+        model.genetic_solver.population[0], model.genetic_solver.population[1]);
 
     // std::cout << "|-> Best solution: " << solution << "\n";
     // std::cout << "|-> Distance: " << distance << "\n";

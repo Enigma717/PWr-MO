@@ -19,6 +19,7 @@ public:
     std::string print_model_parms() const;
     std::string print_nodes() const;
     std::string print_weight_matrix() const;
+    std::vector<Node> get_nodes() const;
 
     double objective_function(const std::vector<Node>& solution) const;
     double prd(double objective_sum) const;

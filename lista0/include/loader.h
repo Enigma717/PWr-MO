@@ -2,6 +2,7 @@
 
 #include "./enums/problem_type.h"
 
+#include <cstdint>
 #include <string>
 
 class Model;
@@ -16,9 +17,8 @@ public:
 private:
     Model& model_ref;
 
-    int currently_read_line {0};
-    int coord_section_end {9};
-
+    std::uint32_t currently_read_line {0};
+    std::uint32_t coord_section_end {9};
 
     void dispatch_header_parser(const std::string& read_line);
     void push_node_into_vector(const std::string& read_line);

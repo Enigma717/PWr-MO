@@ -100,6 +100,11 @@ std::string Model::print_weight_matrix() const
     return stream.str();
 }
 
+std::vector<Node> Model::get_nodes() const
+{
+    return nodes;
+}
+
 double Model::objective_function(const std::vector<Node>& solution) const
 {
     double objective_sum {0.0};

@@ -9,8 +9,8 @@
 
 namespace
 {
-    constexpr int header_size {8};
-    constexpr int coord_section_start {9};
+    constexpr std::size_t header_size {8};
+    constexpr std::size_t coord_section_start {9};
 
     std::vector<std::string> tokenize(const std::string& string, const char delimiter)
     {
