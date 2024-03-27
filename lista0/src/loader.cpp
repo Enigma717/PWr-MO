@@ -70,7 +70,7 @@ void Loader::dispatch_header_parser(const std::string& read_line)
         model_ref.nodes.reserve(model_ref.model_params.dimension);
         model_ref.weights.resize(model_ref.model_params.dimension);
 
-        for (auto i {0}; i < model_ref.model_params.dimension; i++)
+        for (std::size_t i {0uz}; i < model_ref.model_params.dimension; i++)
         {
             model_ref.weights.at(i).resize(model_ref.model_params.dimension);
         }

@@ -1,6 +1,6 @@
 #include "./include/model.h"
 #include "./include/enums/population_type.h"
-#include "./include/stream_operators.h"
+#include "./include/utility_operators.h"
 
 #include <chrono>
 #include <iostream>
@@ -31,11 +31,23 @@ int main()
     // const auto distance {model.objective_function(solution)};
     // const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 
-    model.genetic_solver.initialize_population(PopulationType::mixed, 10);
-    model.genetic_solver.print_population();
-    model.genetic_solver.tournament_selection(5);
-    model.genetic_solver.ordered_crossover(
-        model.genetic_solver.population[0], model.genetic_solver.population[1]);
+    model.genetic_solver.solve();
+
+    // std::vector<Node> s1 = {
+    //     {2, 0.0, 0.0}, {9, 0.0, 0.0}, {4, 0.0, 0.0},
+    //     {8, 0.0, 0.0}, {1, 0.0, 0.0}, {6, 0.0, 0.0},
+    //     {7, 0.0, 0.0}, {3, 0.0, 0.0}, {5, 0.0, 0.0},
+    //     };
+    // std::vector<Node> s2 = {
+    //     {4, 0.0, 0.0}, {7, 0.0, 0.0}, {2, 0.0, 0.0},
+    //     {3, 0.0, 0.0}, {9, 0.0, 0.0}, {5, 0.0, 0.0},
+    //     {1, 0.0, 0.0}, {8, 0.0, 0.0}, {6, 0.0, 0.0},
+    //     };
+
+    // Member p1 {s1, 0.0};
+    // Member p2 {s2, 0.0};
+    // model.genetic_solver.order_crossover(p1, p2);
+    // model.genetic_solver.order_crossover(p2, p1);
 
     // std::cout << "|-> Best solution: " << solution << "\n";
     // std::cout << "|-> Distance: " << distance << "\n";

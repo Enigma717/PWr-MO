@@ -51,3 +51,8 @@ inline double operator<(const Member& member1, const Member& member2)
 {
     return member1.fitness < member2.fitness;
 }
+
+inline double operator==(const Member& member1, const Member& member2)
+{
+    return member1.fitness == member2.fitness;
+}

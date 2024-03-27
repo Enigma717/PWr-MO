@@ -24,7 +24,7 @@ public:
     double objective_function(const std::vector<Node>& solution) const;
     double prd(double objective_sum) const;
 
-    std::vector<Node> k_random_solution(std::uint64_t k);
+    std::vector<Node> k_random_solution(std::uint64_t k_factor);
     std::vector<Node> nearest_neighbour(std::uint16_t starting_point) const;
     std::vector<Node> extended_nearest_neighbour() const;
 

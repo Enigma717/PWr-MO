@@ -1,5 +1,5 @@
 #include "../include/model.h"
-#include "../include/stream_operators.h"
+#include "../include/utility_operators.h"
 
 #include <iostream>
 #include <algorithm>
@@ -131,13 +131,13 @@ double Model::prd(double objective_sum) const
     return 100.0 * ((objective_sum - optimum) / optimum);
 }
 
-std::vector<Node> Model::k_random_solution(std::uint64_t k)
+std::vector<Node> Model::k_random_solution(std::uint64_t k_factor)
 {
     std::vector<Node> solution {nodes};
     double distance {objective_function(solution)};
     double temp_distance {distance};
 
-    for (std::size_t i {0uz}; i < k; i++) {
+    for (std::size_t i {0uz}; i < k_factor; i++) {
         std::shuffle(solution.begin(), solution.end(), rng);
         temp_distance = objective_function(solution);
 
