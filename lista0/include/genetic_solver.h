@@ -29,6 +29,7 @@ private:
     std::vector<Member> population;
     Member best_member;
 
+    std::size_t fitness_evaluations {0};
     std::size_t generation_number {0};
     std::size_t population_size {200};
     std::size_t subgroup_size {7};
@@ -38,6 +39,7 @@ private:
     void random_initialization();
     void neighbour_initialization();
     void mixed_initialization();
+    void fitness_evaluation(Member& member);
 
     Member order_crossover(
         const Member& first_parent,

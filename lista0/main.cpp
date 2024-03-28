@@ -9,7 +9,8 @@ int main()
 {
     Model model;
 
-    model.load_file("./berlin52/berlin52_n51_uncorr_01.ttp");
+    // model.load_file("./berlin52/berlin52_n51_uncorr_01.ttp");
+    model.load_file("./a280/a280_n279_bounded-strongly-corr_01.ttp");
 
     std::cout << "\n==========================\n\n"
         << model.print_model_parms() << "\n";
@@ -24,7 +25,7 @@ int main()
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // model.k_random_solution(10000);
-    // const auto solution {model.nearest_neighbour(20)};
+    // const auto solution {model.nearest_neighbour(2)};
     const auto solution {model.genetic_solver.solve()};
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 

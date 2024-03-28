@@ -7,6 +7,7 @@
 #include "./structs/item.h"
 
 #include <vector>
+#include <optional>
 #include <random>
 
 class Model {
@@ -24,8 +25,8 @@ public:
     double objective_function(const std::vector<Node>& solution) const;
     double prd(double objective_sum) const;
 
-    std::vector<Node> k_random_solution(std::uint64_t k_factor);
-    std::vector<Node> nearest_neighbour(std::uint16_t starting_point) const;
+    std::vector<Node> k_random_solution(std::size_t k_factor);
+    std::vector<Node> nearest_neighbour(std::size_t starting_point) const;
     std::vector<Node> extended_nearest_neighbour() const;
 
 private:
@@ -37,6 +38,7 @@ private:
     std::vector<Node> nodes;
     std::vector<Item> items;
     std::vector<std::vector<double>> weights;
+    // std::optional<double> optimum {std::nullopt};
 
     friend class Loader;
     friend class GeneticSolver;

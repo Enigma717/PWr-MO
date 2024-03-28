@@ -5,10 +5,13 @@
 #include <algorithm>
 #include <string>
 #include <sstream>
+#include <limits>
 
 namespace
 {
-    constexpr double optimum {7544.37};
+    constexpr double optimum {2579};
+    // constexpr double optimum {118282};
+    // constexpr double optimum {7544.37};
 
     double euc_distance(Node first_node, Node second_node)
     {
@@ -131,7 +134,7 @@ double Model::prd(double objective_sum) const
     return 100.0 * ((objective_sum - optimum) / optimum);
 }
 
-std::vector<Node> Model::k_random_solution(std::uint64_t k_factor)
+std::vector<Node> Model::k_random_solution(std::size_t k_factor)
 {
     std::vector<Node> solution {nodes};
     double distance {objective_function(solution)};
@@ -148,26 +151,24 @@ std::vector<Node> Model::k_random_solution(std::uint64_t k_factor)
     return solution;
 }
 
-std::vector<Node> Model::nearest_neighbour(std::uint16_t starting_node_index) const
+std::vector<Node> Model::nearest_neighbour(std::size_t starting_node_index) const
 {
     std::vector<bool> node_visit_status(model_params.dimension);
     std::vector<Node> solution {nodes};
 
-    const std::uint16_t starting_node_position {
-        static_cast<std::uint16_t>(starting_node_index - 1)};
+    const std::size_t starting_node_position {starting_node_index - 1};
     const Node starting_node {nodes.at(starting_node_position)};
 
     solution.at(0) = starting_node;
     node_visit_status.at(starting_node_position) = true;
-    std::uint16_t best_neighbour_position {0u};
+    std::size_t best_neighbour_position {0uz};
 
     for (std::size_t processed_position {0uz}; processed_position < model_params.dimension - 1;) {
-        double best_distance {9999.0};
+        double best_distance {std::numeric_limits<double>::max()};
 
         for (std::size_t neighbour_position {0uz}; neighbour_position < node_visit_status.size(); neighbour_position++) {
             if (node_visit_status.at(neighbour_position) == false) {
-                const std::uint16_t processed_node_position {
-                    static_cast<std::uint16_t>(solution.at(processed_position).index - 1)};
+                const std::size_t processed_node_position {solution.at(processed_position).index - 1};
                 double temp_distance {weights.at(processed_node_position).at(neighbour_position)};
 
                 if (best_distance > temp_distance) {

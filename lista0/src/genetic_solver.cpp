@@ -13,6 +13,7 @@ namespace
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t generation_limit {1000000uz};
+    constexpr std::size_t ffe_limit {10000000uz};
     constexpr std::uint64_t k_random_factor {100u};
     constexpr double random_initialization_probability {0.9};
 }
@@ -50,14 +51,14 @@ std::vector<Node> GeneticSolver::solve()
 
     std::cout << "\n==========================\n\n";
 
-    while (generation_number < generation_limit) {
+    while (fitness_evaluations < ffe_limit) {
         const std::vector<Member> parents {tournament_selection(subgroup_size)};
-        const std::vector<Member> offsprings {process_crossover(parents)};
+        const std::vector<Member> offsprings {process_crossover({parents[0], parents[1]})};
 
         evolve_population(parents, offsprings);
         process_mutation();
         evaluate_population();
-        // std::cout << "GEN: " << generation_number << "\n";
+        // std::cout << ">> FFE: " << fitness_evaluations << "\n\n";
 
         generation_number++;
     }
@@ -207,7 +208,7 @@ void GeneticSolver::process_mutation()
                 member.solution.begin() + first_inverse_point,
                 member.solution.begin() + second_inverse_point);
 
-            member.fitness = model_ref.objective_function(member.solution);
+            fitness_evaluation(member);
         }
     }
 }
@@ -250,9 +251,10 @@ Member GeneticSolver::order_crossover(
         current_position++;
     }
 
-    const double offspring_fitness {model_ref.objective_function(offspring_solution)};
+    Member offspring {offspring_solution, 0.0};
+    fitness_evaluation(offspring);
 
-    return {offspring_solution, offspring_fitness};
+    return offspring;
 }
 
 void GeneticSolver::random_initialization()
@@ -295,4 +297,10 @@ void GeneticSolver::mixed_initialization()
             member.fitness = model_ref.objective_function(member.solution);
         }
     }
+}
+
+void GeneticSolver::fitness_evaluation(Member& member)
+{
+    member.fitness = model_ref.objective_function(member.solution);
+    fitness_evaluations++;
 }
