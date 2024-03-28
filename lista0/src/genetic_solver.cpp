@@ -12,7 +12,7 @@ namespace
     constexpr std::size_t expected_winners {2uz};
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
-    constexpr std::size_t generation_limit {100000uz};
+    constexpr std::size_t generation_limit {1000000uz};
     constexpr std::uint64_t k_random_factor {100u};
     constexpr double random_initialization_probability {0.9};
 }
@@ -42,11 +42,13 @@ void GeneticSolver::evaluate_population()
     }
 }
 
-void GeneticSolver::solve()
+std::vector<Node> GeneticSolver::solve()
 {
     initialize_population(PopulationType::mixed, population_size);
     print_population();
     evaluate_population();
+
+    std::cout << "\n==========================\n\n";
 
     while (generation_number < generation_limit) {
         const std::vector<Member> parents {tournament_selection(subgroup_size)};
@@ -55,11 +57,12 @@ void GeneticSolver::solve()
         evolve_population(parents, offsprings);
         process_mutation();
         evaluate_population();
+        // std::cout << "GEN: " << generation_number << "\n";
 
         generation_number++;
     }
 
-    std::cout << "Best member: " << best_member << "\n";
+    return best_member.solution;
 }
 
 void GeneticSolver::initialize_population(

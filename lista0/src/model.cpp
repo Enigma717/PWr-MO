@@ -8,7 +8,7 @@
 
 namespace
 {
-    constexpr double optimum {7542.0};
+    constexpr double optimum {7544.37};
 
     double euc_distance(Node first_node, Node second_node)
     {

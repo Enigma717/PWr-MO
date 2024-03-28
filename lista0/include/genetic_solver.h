@@ -15,7 +15,7 @@ public:
 
     void print_population();
     void evaluate_population();
-    void solve();
+    std::vector<Node> solve();
 
     void initialize_population(PopulationType population_type, std::size_t size);
     std::vector<Member> tournament_selection(std::size_t subgroup_size);
