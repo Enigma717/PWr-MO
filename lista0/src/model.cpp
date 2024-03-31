@@ -9,10 +9,6 @@
 
 namespace
 {
-    constexpr double optimum {2579};
-    // constexpr double optimum {118282};
-    // constexpr double optimum {7544.37};
-
     double euc_distance(Node first_node, Node second_node)
     {
         const double result {
@@ -45,6 +41,40 @@ void Model::create_weight_matrix()
     }
 }
 
+void Model::solve_knapsack()
+{
+    const std::size_t items_count {items.size()};
+    const std::size_t capacity {model_params.capacity};
+    std::vector<std::vector<int>> dp_matrix(items_count + 1, std::vector<int>(capacity + 1));
+
+    for (int i = 0; i <= items_count; i++) {
+        for (int w = 0; w <= capacity; w++) {
+            if (i == 0 || w == 0)
+                dp_matrix.at(i).at(w) = 0;
+            else if (items[i - 1].weight <= w)
+                dp_matrix.at(i).at(w) = std::max(items.at(i - 1).profit +
+                    dp_matrix.at(i - 1).at(w - items[i - 1].weight), dp_matrix.at(i - 1).at(w));
+            else
+                dp_matrix.at(i).at(w) = dp_matrix.at(i - 1).at(w);
+        }
+    }
+
+    int result {dp_matrix[items_count][capacity]};
+
+    knapsack_value = result;
+    knapsack_solution.resize(items_count);
+
+    int weight = capacity;
+    for (int i = items_count; i > 0 && result > 0; i--) {
+        if (result != dp_matrix[i - 1][weight]) {
+            knapsack_solution[items[i - 1].index - 1] = true;
+
+            result = result - items[i - 1].profit;
+            weight = weight - items[i - 1].weight;
+        }
+    }
+}
+
 std::string Model::print_model_parms() const
 {
     std::stringstream stream;
@@ -57,6 +87,7 @@ std::string Model::print_model_parms() const
         << "\n|-> Min_speed: " << model_params.min_speed
         << "\n|-> Max_speed: " << model_params.max_speed
         << "\n|-> Renting_ratio: " << model_params.renting_ratio
+        << "\n|-> Speed_to_weight_ratio: " << model_params.speed_to_weight_ratio
         << "\n|-> Nodes size: " << nodes.size()
         << "\n\\-> Items size: " << items.size();
 
@@ -73,6 +104,29 @@ std::string Model::print_nodes() const
         stream << nodes.at(i).index;
 
         if (i != nodes.size() - 1)
+            stream << ", ";
+    }
+
+    stream << "]";
+
+    return stream.str();
+}
+
+std::string Model::print_items() const
+{
+    std::stringstream stream;
+
+    stream << "[";
+
+    for (std::size_t i {0uz}; i < items.size(); i++) {
+        const auto& item {items.at(i)};
+        stream << "\nItem(" << item.index << "): [node_idx: "
+            << item.node_index << ", profit: "
+            << item.profit << ", weight: "
+            << item.weight << ", ratio: "
+            << item.ratio << "]";
+
+        if (i != items.size() - 1)
             stream << ", ";
     }
 
@@ -103,24 +157,13 @@ std::string Model::print_weight_matrix() const
     return stream.str();
 }
 
-std::vector<Node> Model::get_nodes() const
-{
-    return nodes;
-}
-
 double Model::objective_function(const std::vector<Node>& solution) const
 {
     double objective_sum {0.0};
 
     for (std::size_t i {0uz}; i < solution.size(); i++) {
-        const std::uint16_t source {solution.at(i).index};
-        std::uint16_t destination {0};
-
-        if (i == solution.size() - 1)
-            destination = solution.at(0).index;
-        else
-            destination = solution.at(i + 1).index;
-
+        const std::size_t source {solution.at(i).index};
+        const std::size_t destination {solution.at((i + 1) % solution.size()).index};
         const double distance {weights.at(source - 1).at(destination - 1)};
 
         objective_sum += distance;
@@ -129,9 +172,46 @@ double Model::objective_function(const std::vector<Node>& solution) const
     return objective_sum;
 }
 
-double Model::prd(double objective_sum) const
+double Model::evaluate_member_fitness(const Member& member)
 {
-    return 100.0 * ((objective_sum - optimum) / optimum);
+    const std::vector<Node>& solution {member.solution};
+    double objective_sum {knapsack_value};
+
+    for (std::size_t i {0uz}; i < solution.size(); i++) {
+        const std::size_t source {solution.at(i).index};
+        const std::size_t destination {solution.at((i + 1) % (solution.size())).index};
+        const double distance {weights.at(source - 1).at(destination - 1)};
+
+        // std::cout << "\nSource: " << source;
+        // std::cout << "\nSource - 1: " << (source - 1);
+        int item_weight {0};
+        if (source != 1 && knapsack_solution.at(source - 2))
+            item_weight = items.at(source - 2).weight;
+
+        const double travel_time {calculate_travel_time(distance, item_weight)};
+
+        objective_sum -= travel_time;
+    }
+
+    current_knapsack_weight = 0;
+
+    return objective_sum;
+}
+
+double Model::calculate_travel_time(const double distance, const int item_weight)
+{
+    // std::cout << "\nKnapsack weight b4: " << knapsack_weight;
+    current_knapsack_weight += item_weight;
+
+    const double velocity {
+        model_params.max_speed - (current_knapsack_weight * model_params.speed_to_weight_ratio)};
+
+    // std::cout << "\nKnapsack weight after: " << knapsack_weight;
+    // std::cout << "\nDistance: " << distance;
+    // std::cout << "\nVelocity: " << velocity;
+    // std::cout << "\nTTP distance: " << (distance / velocity) << "\n";
+
+    return (distance / velocity);
 }
 
 std::vector<Node> Model::k_random_solution(std::size_t k_factor)

@@ -91,6 +91,9 @@ void Loader::dispatch_header_parser(const std::string& read_line)
         break;
     case 7:
         model_ref.model_params.renting_ratio = std::stod(value);
+        model_ref.model_params.speed_to_weight_ratio =
+            (model_ref.model_params.max_speed - model_ref.model_params.min_speed) /
+            model_ref.model_params.capacity;
         break;
     default: break;
     }
@@ -117,6 +120,7 @@ void Loader::push_item_into_vector(const std::string& read_line)
     item.profit = std::stoi(tokens.at(1));
     item.weight = std::stoi(tokens.at(2));
     item.node_index = std::stoi(tokens.at(3));
+    item.ratio = static_cast<double>(item.profit) / static_cast<double>(item.weight);
 
     model_ref.items.push_back(item);
 }

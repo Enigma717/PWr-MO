@@ -12,8 +12,8 @@ namespace
     constexpr std::size_t expected_winners {2uz};
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
-    constexpr std::size_t generation_limit {1000000uz};
-    constexpr std::size_t ffe_limit {10000000uz};
+    constexpr std::size_t generation_limit {1'000'000uz};
+    constexpr std::size_t ffe_limit {10'000'000uz};
     constexpr std::uint64_t k_random_factor {100u};
     constexpr double random_initialization_probability {0.9};
 }
@@ -29,27 +29,26 @@ void GeneticSolver::print_population()
 
 void GeneticSolver::evaluate_population()
 {
-    const auto new_best_member {*std::min_element(population.begin(), population.end())};
+    const auto new_best_member {*std::max_element(population.begin(), population.end())};
 
     if (generation_number == 0)
         best_member = new_best_member;
 
-    if (new_best_member < best_member) {
+    if (new_best_member > best_member) {
         best_member = new_best_member;
 
         std::cout << "|-> Generation number: " << generation_number
-            << "\tDistance: " << best_member.fitness
-            << "\tPRD: " << model_ref.prd(best_member.fitness) << "%\n";
+            << "\tFitness: " << best_member.fitness
+            << "\tFFE: " << fitness_evaluations << "\n";
     }
 }
 
-std::vector<Node> GeneticSolver::solve()
+const Member& GeneticSolver::solve()
 {
     initialize_population(PopulationType::mixed, population_size);
-    print_population();
     evaluate_population();
 
-    std::cout << "\n==========================\n\n";
+    std::cout << "\n===========================\n\n";
 
     while (fitness_evaluations < ffe_limit) {
         const std::vector<Member> parents {tournament_selection(subgroup_size)};
@@ -58,12 +57,11 @@ std::vector<Node> GeneticSolver::solve()
         evolve_population(parents, offsprings);
         process_mutation();
         evaluate_population();
-        // std::cout << ">> FFE: " << fitness_evaluations << "\n\n";
 
         generation_number++;
     }
 
-    return best_member.solution;
+    return best_member;
 }
 
 void GeneticSolver::initialize_population(
@@ -90,15 +88,11 @@ std::vector<Member> GeneticSolver::tournament_selection(std::size_t subgroup_siz
     for (const auto& subgroup : population | std::views::chunk(subgroup_size)) {
         std::sort(subgroup.begin(), subgroup.end());
 
-        const auto& winners {std::views::drop(std::views::reverse(subgroup), drop_point)};
+        const auto& winners {std::views::drop(subgroup, drop_point)};
 
         for (const Member& winner : winners)
             final_winners.push_back(winner);
     }
-
-    // for (const Member& winner : final_winners) {
-    //     std::cout << "-> Final winner: " << winner << "\n";
-    // }
 
     return final_winners;
 }
@@ -133,34 +127,14 @@ std::vector<Member> GeneticSolver::process_crossover(const std::vector<Member>& 
             const Member second_offspring {order_crossover(
                 second_parent, first_parent, first_crossing_point, second_crossing_point)};
 
-            // std::cout << "\n==========================\n";
-            // std::cout << "> Crossing points: "
-            //     << first_crossing_point << " and " << second_crossing_point << "\n";
-            // std::cout << "> First parent: " << first_parent << "\n";
-            // std::cout << "> Second parent: " << second_parent << "\n";
-            // std::cout << "==========================\n";
-            // std::cout << "> First kid: " << first_offspring << "\n";
-            // std::cout << "> Second kid: " << second_offspring << "\n";
-            // std::cout << "==========================\n";
-
             offsprings.push_back(first_offspring);
             offsprings.push_back(second_offspring);
         }
         else {
             offsprings.push_back(first_parent);
             offsprings.push_back(second_parent);
-
-            // std::cout << "\n==========================\n";
-            // std::cout << "> Parents copied \n";
-            // std::cout << "> First parent: " << first_parent << "\n";
-            // std::cout << "> Second parent: " << second_parent << "\n";
-            // std::cout << "==========================\n";
         }
     }
-
-    // for (const Member& offspring : offsprings) {
-    //     std::cout << "-> Offspring: " << offspring << "\n";
-    // }
 
     return offsprings;
 }
@@ -261,7 +235,7 @@ void GeneticSolver::random_initialization()
 {
     for (auto& member : population) {
         member.solution = model_ref.k_random_solution(k_random_factor);
-        member.fitness = model_ref.objective_function(member.solution);
+        member.fitness = model_ref.evaluate_member_fitness(member);
     }
 }
 
@@ -273,7 +247,7 @@ void GeneticSolver::neighbour_initialization()
             static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
 
         member.solution = model_ref.nearest_neighbour(starting_node_index);
-        member.fitness = model_ref.objective_function(member.solution);
+        member.fitness = model_ref.evaluate_member_fitness(member);
     }
 }
 
@@ -287,20 +261,20 @@ void GeneticSolver::mixed_initialization()
 
         if (random_choice < random_initialization_probability) {
             member.solution = model_ref.k_random_solution(k_random_factor);
-            member.fitness = model_ref.objective_function(member.solution);
+            member.fitness = model_ref.evaluate_member_fitness(member);
         }
         else {
             const std::uint16_t starting_node_index {
                 static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
 
             member.solution = model_ref.nearest_neighbour(starting_node_index);
-            member.fitness = model_ref.objective_function(member.solution);
+            member.fitness = model_ref.evaluate_member_fitness(member);
         }
     }
 }
 
 void GeneticSolver::fitness_evaluation(Member& member)
 {
-    member.fitness = model_ref.objective_function(member.solution);
+    member.fitness = model_ref.evaluate_member_fitness(member);
     fitness_evaluations++;
 }

@@ -47,12 +47,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Member& member)
     return stream;
 }
 
-inline double operator<(const Member& member1, const Member& member2)
+inline auto operator<=>(const Member& member1, const Member& member2)
 {
-    return member1.fitness < member2.fitness;
-}
-
-inline double operator==(const Member& member1, const Member& member2)
-{
-    return member1.fitness == member2.fitness;
+    return member1.fitness <=> member2.fitness;
 }

@@ -13,4 +13,5 @@ struct ModelParams {
     double min_speed {0.0};
     double max_speed {0.0};
     double renting_ratio {0.0};
+    double speed_to_weight_ratio {0.0};
 };

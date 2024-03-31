@@ -16,14 +16,16 @@ public:
 
     void load_file(const std::string& file_path);
     void create_weight_matrix();
+    void solve_knapsack();
 
     std::string print_model_parms() const;
     std::string print_nodes() const;
+    std::string print_items() const;
     std::string print_weight_matrix() const;
-    std::vector<Node> get_nodes() const;
 
     double objective_function(const std::vector<Node>& solution) const;
-    double prd(double objective_sum) const;
+    double evaluate_member_fitness(const Member& member);
+    double calculate_travel_time(const double distance, const int item_weight);
 
     std::vector<Node> k_random_solution(std::size_t k_factor);
     std::vector<Node> nearest_neighbour(std::size_t starting_point) const;
@@ -44,6 +46,9 @@ private:
     friend class GeneticSolver;
 
 public:
-    GeneticSolver genetic_solver;
+    std::vector<bool> knapsack_solution;
+    int knapsack_value {0};
+    int current_knapsack_weight {0};
 
+    GeneticSolver genetic_solver;
 };
