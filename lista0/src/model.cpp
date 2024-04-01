@@ -86,7 +86,7 @@ std::vector<bool> Model::solve_knapsack_db(Member& member)
             if (i == 0 || w == 0)
                 dp_matrix.at(i).at(w) = 0;
             else if (items.at(i - 1).weight <= w)
-                dp_matrix.at(i).at(w) = std::max(penalized_items.at(i - 1).profit +
+                dp_matrix.at(i).at(w) = std::max(member.penalized_items.at(i - 1).profit +
                     dp_matrix.at(i - 1).at(w - items.at(i - 1).weight), dp_matrix.at(i - 1).at(w));
             else
                 dp_matrix.at(i).at(w) = dp_matrix.at(i - 1).at(w);
@@ -96,14 +96,14 @@ std::vector<bool> Model::solve_knapsack_db(Member& member)
     int current_profit {dp_matrix.at(items_count).at(capacity)};
 
     member.knapsack_value = current_profit;
-    int weight {capacity};
+    std::size_t current_weight {capacity};
 
-    for (std::size_t i {items_count}; i > 0 && result > 0; i--) {
-        if (result != dp_matrix.at(i - 1).at(weight)) {
+    for (std::size_t i {items_count}; i > 0 && current_profit > 0; i--) {
+        if (current_profit != dp_matrix.at(i - 1).at(current_weight)) {
             knapsack_solution.at(items.at(i - 1).index - 1) = true;
 
-            result = result - penalized_items.at(i - 1).profit;
-            weight = weight - items.at(i - 1).weight;
+            current_profit = current_profit - member.penalized_items.at(i - 1).profit;
+            current_weight = current_weight - items.at(i - 1).weight;
         }
     }
 

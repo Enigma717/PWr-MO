@@ -20,7 +20,6 @@ int main()
         << model.print_model_parms() << "\n";
 
     model.create_weight_matrix();
-    // model.solve_knapsack();
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     const auto best_member {model.genetic_solver.solve()};

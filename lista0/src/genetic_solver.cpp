@@ -288,7 +288,7 @@ Member GeneticSolver::create_new_member(const std::vector<Node>& route)
     Member member;
     member.route = route;
     member.penalized_items = penalize_item_values(route);
-    member.packing_plan = model_ref.solve_knapsack(member);
+    member.packing_plan = model_ref.solve_knapsack_greedy(member);
     member.fitness = fitness_evaluation(member);
 
     return member;
