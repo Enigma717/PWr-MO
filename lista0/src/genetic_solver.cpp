@@ -6,16 +6,23 @@
 #include <random>
 #include <ranges>
 #include <algorithm>
+#include <cmath>
+#include <iomanip>
 
 namespace
 {
     constexpr std::size_t expected_winners {2uz};
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
-    constexpr std::size_t generation_limit {1'000'000uz};
-    constexpr std::size_t ffe_limit {10'000'000uz};
+    constexpr std::size_t generation_limit {500'000uz};
+    constexpr std::size_t ffe_limit {5'000'000uz};
     constexpr std::uint64_t k_random_factor {100u};
     constexpr double random_initialization_probability {0.9};
+
+    constexpr double ln_factor(const std::size_t iteration, const std::size_t dimension)
+    {
+        return (std::log(iteration) / std::log(dimension));
+    }
 }
 
 GeneticSolver::GeneticSolver(Model& model_ref) : model_ref{model_ref} {}
@@ -29,7 +36,10 @@ void GeneticSolver::print_population()
 
 void GeneticSolver::evaluate_population()
 {
-    const auto new_best_member {*std::max_element(population.begin(), population.end())};
+    const Member new_best_member {*std::max_element(population.begin(), population.end())};
+    const Member worst_member {*std::min_element(population.begin(), population.end())};
+    const double avg_fitness {
+        std::accumulate(population.begin(), population.end(), 0.0) / population_size};
 
     if (generation_number == 0)
         best_member = new_best_member;
@@ -37,9 +47,14 @@ void GeneticSolver::evaluate_population()
     if (new_best_member > best_member) {
         best_member = new_best_member;
 
-        std::cout << "|-> Generation number: " << generation_number
-            << "\tFitness: " << best_member.fitness
-            << "\tFFE: " << fitness_evaluations << "\n";
+        std::cout << std::fixed << std::setprecision(2)
+            << "|-> Generation number: " << generation_number
+            << "\t||\tBest fitness: " << best_member.fitness
+            << "\tKnapsack value: " << best_member.knapsack_value
+            << "\tTraveling time: " << best_member.knapsack_value - best_member.fitness
+            << "\t||\tWorst fitness: " << worst_member.fitness
+            << "\t||\tAverage fitness: " << avg_fitness
+            << "\t||\tFFE: " << fitness_evaluations << "\n";
     }
 }
 
@@ -50,7 +65,7 @@ const Member& GeneticSolver::solve()
 
     std::cout << "\n===========================\n\n";
 
-    while (fitness_evaluations < ffe_limit) {
+    while (fitness_evaluations < ffe_limit && generation_number < generation_limit) {
         const std::vector<Member> parents {tournament_selection(subgroup_size)};
         const std::vector<Member> offsprings {process_crossover({parents[0], parents[1]})};
 
@@ -60,6 +75,8 @@ const Member& GeneticSolver::solve()
 
         generation_number++;
     }
+
+    std::cout << "\\-> Last generation number: " << generation_number << "\n";
 
     return best_member;
 }
@@ -139,6 +156,7 @@ std::vector<Member> GeneticSolver::process_crossover(const std::vector<Member>& 
     return offsprings;
 }
 
+
 void GeneticSolver::evolve_population(
     const std::vector<Member>& parents, const std::vector<Member>& offsprings)
 {
@@ -179,14 +197,51 @@ void GeneticSolver::process_mutation()
                 std::swap(first_inverse_point, second_inverse_point);
 
             std::reverse(
-                member.solution.begin() + first_inverse_point,
-                member.solution.begin() + second_inverse_point);
+                member.route.begin() + first_inverse_point,
+                member.route.begin() + second_inverse_point);
 
-            fitness_evaluation(member);
+            member = create_new_member(member.route);
         }
     }
 }
 
+
+void GeneticSolver::random_initialization()
+{
+    for (auto& member : population)
+        member = create_new_member(model_ref.k_random_solution(k_random_factor));
+}
+
+void GeneticSolver::neighbour_initialization()
+{
+    for (std::size_t member_position {0uz}; member_position < population.size(); member_position++) {
+        auto& member {population.at(member_position)};
+        const std::uint16_t starting_node_index {
+            static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
+
+        member = create_new_member(model_ref.nearest_neighbour(starting_node_index));
+    }
+}
+
+void GeneticSolver::mixed_initialization()
+{
+    for (std::size_t member_position {0uz}; member_position < population.size(); member_position++) {
+        auto& member {population.at(member_position)};
+
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);
+        const double random_choice {distribution(model_ref.rng)};
+
+        if (random_choice < random_initialization_probability) {
+            member = create_new_member(model_ref.k_random_solution(k_random_factor));
+        }
+        else {
+            const std::uint16_t starting_node_index {
+                static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
+
+            member = create_new_member(model_ref.nearest_neighbour(starting_node_index));
+        }
+    }
+}
 
 Member GeneticSolver::order_crossover(
     const Member& first_parent,
@@ -194,15 +249,15 @@ Member GeneticSolver::order_crossover(
     const std::size_t first_crossing_point,
     const std::size_t second_crossing_point)
 {
-    const std::size_t dimension {first_parent.solution.size()};
+    const std::size_t dimension {first_parent.route.size()};
     std::vector<bool> used_nodes(dimension);
     std::vector<Node> offspring_solution(dimension);
 
     std::size_t current_position {first_crossing_point};
 
     while (current_position <= second_crossing_point) {
-        offspring_solution.at(current_position) = first_parent.solution.at(current_position);
-        used_nodes.at(first_parent.solution.at(current_position).index - 1) = true;
+        offspring_solution.at(current_position) = first_parent.route.at(current_position);
+        used_nodes.at(first_parent.route.at(current_position).index - 1) = true;
 
         current_position++;
     }
@@ -216,65 +271,51 @@ Member GeneticSolver::order_crossover(
             continue;
         }
 
-        while (used_nodes.at(second_parent.solution.at(first_legal_position).index - 1))
+        while (used_nodes.at(second_parent.route.at(first_legal_position).index - 1))
             first_legal_position++;
 
-        offspring_solution.at(current_position) = second_parent.solution.at(first_legal_position);
-        used_nodes.at(second_parent.solution.at(first_legal_position).index - 1) = true;
+        offspring_solution.at(current_position) = second_parent.route.at(first_legal_position);
+        used_nodes.at(second_parent.route.at(first_legal_position).index - 1) = true;
 
         current_position++;
     }
 
-    Member offspring {offspring_solution, 0.0};
-    fitness_evaluation(offspring);
-
-    return offspring;
+    return create_new_member(offspring_solution);
 }
 
-void GeneticSolver::random_initialization()
+Member GeneticSolver::create_new_member(const std::vector<Node>& route)
 {
-    for (auto& member : population) {
-        member.solution = model_ref.k_random_solution(k_random_factor);
-        member.fitness = model_ref.evaluate_member_fitness(member);
-    }
+    Member member;
+    member.route = route;
+    member.penalized_items = penalize_item_values(route);
+    member.packing_plan = model_ref.solve_knapsack(member);
+    member.fitness = fitness_evaluation(member);
+
+    return member;
 }
 
-void GeneticSolver::neighbour_initialization()
+std::vector<Item> GeneticSolver::penalize_item_values(const std::vector<Node>& route)
 {
-    for (std::size_t member_position {0uz}; member_position < population.size(); member_position++) {
-        auto& member {population.at(member_position)};
-        const std::uint16_t starting_node_index {
-            static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
+    std::vector<Item> penalized_items {model_ref.items};
 
-        member.solution = model_ref.nearest_neighbour(starting_node_index);
-        member.fitness = model_ref.evaluate_member_fitness(member);
-    }
-}
+    for (std::size_t i {0uz}; i < route.size(); i++) {
+        const std::size_t current_node {route.at(i).index};
 
-void GeneticSolver::mixed_initialization()
-{
-    for (std::size_t member_position {0uz}; member_position < population.size(); member_position++) {
-        auto& member {population.at(member_position)};
-
-        std::uniform_real_distribution<double> distribution(0.0, 1.0);
-        const double random_choice {distribution(model_ref.rng)};
-
-        if (random_choice < random_initialization_probability) {
-            member.solution = model_ref.k_random_solution(k_random_factor);
-            member.fitness = model_ref.evaluate_member_fitness(member);
-        }
-        else {
-            const std::uint16_t starting_node_index {
-                static_cast<std::uint16_t>((member_position % model_ref.model_params.dimension) + 1)};
-
-            member.solution = model_ref.nearest_neighbour(starting_node_index);
-            member.fitness = model_ref.evaluate_member_fitness(member);
+        if (current_node != 1) {
+            Item& current_item {penalized_items.at(current_node - 2)};
+            current_item.profit *= ln_factor(i + 2, route.size() + 1);
+            current_item.ratio =
+                static_cast<double>(current_item.profit) /
+                static_cast<double>(current_item.weight);
         }
     }
+
+    return penalized_items;
 }
 
-void GeneticSolver::fitness_evaluation(Member& member)
+
+double GeneticSolver::fitness_evaluation(Member& member)
 {
-    member.fitness = model_ref.evaluate_member_fitness(member);
     fitness_evaluations++;
+    return model_ref.evaluate_member_fitness(member);
 }

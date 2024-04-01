@@ -39,11 +39,13 @@ private:
     void random_initialization();
     void neighbour_initialization();
     void mixed_initialization();
-    void fitness_evaluation(Member& member);
 
     Member order_crossover(
         const Member& first_parent,
         const Member& second_parent,
         const std::size_t first_crossing_point,
         const std::size_t second_crossing_point);
+    Member create_new_member(const std::vector<Node>& route);
+    std::vector<Item> penalize_item_values(const std::vector<Node>& route);
+    double fitness_evaluation(Member& member);
 };
