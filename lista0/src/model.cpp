@@ -47,30 +47,30 @@ void Model::solve_knapsack()
     const std::size_t capacity {model_params.capacity};
     std::vector<std::vector<int>> dp_matrix(items_count + 1, std::vector<int>(capacity + 1));
 
-    for (int i = 0; i <= items_count; i++) {
-        for (int w = 0; w <= capacity; w++) {
+    for (std::size_t i = 0; i <= items_count; i++) {
+        for (std::size_t w = 0; w <= capacity; w++) {
             if (i == 0 || w == 0)
                 dp_matrix.at(i).at(w) = 0;
-            else if (items[i - 1].weight <= w)
+            else if (items.at(i - 1).weight <= w)
                 dp_matrix.at(i).at(w) = std::max(items.at(i - 1).profit +
-                    dp_matrix.at(i - 1).at(w - items[i - 1].weight), dp_matrix.at(i - 1).at(w));
+                    dp_matrix.at(i - 1).at(w - items.at(i - 1).weight), dp_matrix.at(i - 1).at(w));
             else
                 dp_matrix.at(i).at(w) = dp_matrix.at(i - 1).at(w);
         }
     }
 
-    int result {dp_matrix[items_count][capacity]};
+    int result {dp_matrix.at(items_count).at(capacity)};
 
     knapsack_value = result;
     knapsack_solution.resize(items_count);
 
     int weight = capacity;
     for (int i = items_count; i > 0 && result > 0; i--) {
-        if (result != dp_matrix[i - 1][weight]) {
-            knapsack_solution[items[i - 1].index - 1] = true;
+        if (result != dp_matrix.at(i - 1).at(weight)) {
+            knapsack_solution.at(items.at(i - 1).index - 1) = true;
 
-            result = result - items[i - 1].profit;
-            weight = weight - items[i - 1].weight;
+            result = result - items.at(i - 1).profit;
+            weight = weight - items.at(i - 1).weight;
         }
     }
 }
@@ -175,7 +175,7 @@ double Model::objective_function(const std::vector<Node>& solution) const
 double Model::evaluate_member_fitness(const Member& member)
 {
     const std::vector<Node>& solution {member.solution};
-    double objective_sum {knapsack_value};
+    double objective_sum {static_cast<double>(knapsack_value)};
 
     for (std::size_t i {0uz}; i < solution.size(); i++) {
         const std::size_t source {solution.at(i).index};
