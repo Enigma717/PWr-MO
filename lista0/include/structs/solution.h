@@ -5,7 +5,7 @@
 
 #include <vector>
 
-struct Member {
+struct Solution {
     std::vector<Node> route;
     std::vector<Item> penalized_items;
     std::vector<bool> packing_plan;

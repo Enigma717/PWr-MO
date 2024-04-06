@@ -2,10 +2,12 @@
 
 #include "./enums/population_type.h"
 #include "./structs/node.h"
-#include "./structs/member.h"
+#include "./structs/solution.h"
 
 #include <string>
 #include <ostream>
+
+using PackingPlan = std::vector<bool>;
 
 inline std::ostream& operator<<(std::ostream& stream, const ProblemType& problem_type)
 {
@@ -61,7 +63,7 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<Item>& i
     return stream;
 }
 
-inline std::ostream& operator<<(std::ostream& stream, const std::vector<bool>& packing_plan)
+inline std::ostream& operator<<(std::ostream& stream, const PackingPlan& packing_plan)
 {
     stream << "[";
 
@@ -77,26 +79,26 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<bool>& p
     return stream;
 }
 
-inline std::ostream& operator<<(std::ostream& stream, const Member& member)
+inline std::ostream& operator<<(std::ostream& stream, const Solution& solution)
 {
-    stream << "Route: " << member.route
-        << ", packing plan: " << member.packing_plan
-        << ", fitness: " << member.fitness;
+    stream << "Route: " << solution.route
+        << ", packing plan: " << solution.packing_plan
+        << ", fitness: " << solution.fitness;
 
     return stream;
 }
 
-inline auto operator<=>(const Member& member1, const Member& member2)
+inline auto operator<=>(const Solution& solution1, const Solution& solution2)
 {
-    return member1.fitness <=> member2.fitness;
+    return solution1.fitness <=> solution2.fitness;
 }
 
-inline double operator+(const Member& member1, const Member& member2)
+inline double operator+(const Solution& solution1, const Solution& solution2)
 {
-    return member1.fitness + member2.fitness;
+    return solution1.fitness + solution2.fitness;
 }
 
-inline double operator+(double sum, const Member& member)
+inline double operator+(double sum, const Solution& solution)
 {
-    return sum + member.fitness;
+    return sum + solution.fitness;
 }
