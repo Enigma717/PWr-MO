@@ -6,8 +6,10 @@
 *pr136/
 *rat575/
 *src_research/
+*instances/
 
 *.jl
+*.sh
 
 /ttp/sim
 /gcp/gcp

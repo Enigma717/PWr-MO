@@ -1,39 +1,36 @@
-#include "./include/vertex.h"
-#include "./include/graph.h"
+#include "./include/model.h"
 #include "./include/utility_operators.h"
 
 #include <iostream>
 
 int main()
 {
-    Graph graph(10);
+    Model model;
 
-    std::cout << "\nSize: " << graph.vertices.size();
-    std::cout << "\nVertices: [" << graph.vertices << "]\n";
+    // model.load_file("./instances/inithx.i.1.col");
+    model.load_file("./instances/queen5_5.col");
+    std::cout << model.print_model_parms() << "\n";
 
-    // std::cout << "\nFind 3: " << graph.vertices.count(Vertex(3));
-    // std::cout << "\nFind 10: " << graph.vertices.count(Vertex(10));
-    // std::cout << "\nFind 100: " << graph.vertices.count(Vertex(100));
+    std::cout << "\nSize: " << model.graph->vertices.size();
+    std::cout << "\nVertices: [" << model.graph->vertices << "]";
+    std::cout << "\nColours: [" << model.graph->colours << "]\n";
 
-    graph.add_edge(1, 3);
-    graph.add_edge(1, 2);
-    graph.add_edge(1, 5);
-    graph.add_edge(1, 3);
+    // for (std::size_t i {0uz}; i < graph.vertices.size(); i++)
+        // graph.vertices.at(i).update_colour(i);
 
-    for (std::size_t i {0uz}; i < graph.vertices.size(); i++)
-        std::cout << graph.vertices.at(i).print_neighbours();
+    // for (std::size_t i {0uz}; i < graph.vertices.size(); i++)
+    //     std::cout << graph.vertices.at(i).print_neighbours();
 
-    std::cout << "\n\n";
+    // std::cout << "\n\n";
 
-    graph.vertices.at(1).update_color(1);
-    graph.vertices.at(3).update_color(2);
+    // std::cout << "-> BFS: ";
+    // graph.BFS(0);
 
-    std::cout << "\nVertices: [" << graph.vertices << "]\n";
+    // std::cout << "-> DFS: ";
+    // graph.DFS(0);
 
-    for (std::size_t i {0uz}; i < graph.vertices.size(); i++)
-        std::cout << graph.vertices.at(i).print_neighbours();
-
-    std::cout << "\n\n";
+    // std::cout << "-> Bipartite: ";
+    // graph.is_bipartite();
 
     return 0;
 }

@@ -9,7 +9,7 @@ std::string Vertex::print_neighbours() const
 {
     std::stringstream stream;
 
-    stream << "\nNeighbours(" << *this << "): [" << neighbours << "]";
+    stream << "\nNeighbourhood(" << *this << "): [" << neighbours << "]";
 
     return stream.str();
 }
@@ -19,17 +19,27 @@ std::size_t Vertex::get_id() const
     return id;
 }
 
-std::size_t Vertex::get_color() const
+std::size_t Vertex::get_colour() const
 {
-    return color;
+    return colour;
 }
 
-void Vertex::update_neighbourship(Vertex& new_neighbour)
+std::size_t& Vertex::get_colour_ref()
+{
+    return colour;
+}
+
+const std::set<Vertex*>& Vertex::get_neighbours() const
+{
+    return neighbours;
+}
+
+void Vertex::update_neighbourship_with(Vertex& new_neighbour)
 {
     neighbours.insert(&new_neighbour);
 }
 
-void Vertex::update_color(std::size_t new_color)
+void Vertex::update_colour(std::size_t new_colour)
 {
-    color = new_color;
+    colour = new_colour;
 }

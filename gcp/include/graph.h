@@ -8,10 +8,17 @@
 class Graph {
 public:
     Graph() = delete;
-    Graph(std::size_t);
+    Graph(const std::size_t);
 
-    void add_edge(std::size_t first_vertex_id, std::size_t second_vertex_id);
+    void add_edge(const std::size_t source_id, const std::size_t destination_id);
 
-// private:
+    void BFS(const std::size_t starting_vertex_id);
+    void DFS(const std::size_t starting_vertex_id);
+    bool is_bipartite();
+
+private:
+    bool bipartite_visit(Vertex* vertex, std::vector<bool>& visited);
+
     std::vector<Vertex> vertices;
+    std::vector<std::size_t*> colours;
 };
