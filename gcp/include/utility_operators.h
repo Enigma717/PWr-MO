@@ -12,14 +12,33 @@ inline std::ostream& operator<<(std::ostream& stream, const Vertex& vertex)
     return stream;
 }
 
+inline std::ostream& operator<<(std::ostream& stream, const std::set<std::size_t>& colours)
+{
+    const std::size_t size {colours.size()};
+    std::size_t i {0};
+
+    for (const auto colour : colours) {
+        stream << colour;
+
+        if (i != size - 1)
+            stream << ", ";
+
+        i++;
+    }
+
+    return stream;
+}
+
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<std::size_t*>& colours)
 {
-    for (std::size_t i {0uz}; i < colours.size(); i++) {
+    const std::size_t size {colours.size()};
+
+    for (std::size_t i {0uz}; i < size; i++) {
         const auto& colour {colours.at(i)};
 
         stream << *colour;
 
-        if (i != colours.size() - 1)
+        if (i != size - 1)
             stream << ", ";
     }
 
@@ -28,12 +47,14 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<std::siz
 
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<Vertex>& vertices)
 {
-    for (std::size_t i {0uz}; i < vertices.size(); i++) {
+    const std::size_t size {vertices.size()};
+
+    for (std::size_t i {0uz}; i < size; i++) {
         const auto& vertex {vertices.at(i)};
 
         stream << vertex;
 
-        if (i != vertices.size() - 1)
+        if (i != size - 1)
             stream << ", ";
     }
 
@@ -42,12 +63,14 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<Vertex>&
 
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<Vertex*>& vertices)
 {
-    for (std::size_t i {0uz}; i < vertices.size(); i++) {
+    const std::size_t size {vertices.size()};
+
+    for (std::size_t i {0uz}; i < size; i++) {
         const auto& vertex {vertices.at(i)};
 
         stream << *vertex;
 
-        if (i != vertices.size() - 1)
+        if (i != size - 1)
             stream << ", ";
     }
 

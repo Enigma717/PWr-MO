@@ -2,6 +2,7 @@
 
 #include "structs/model_params.h"
 #include "loader.h"
+#include "solver.h"
 
 #include <memory>
 #include <random>
@@ -20,10 +21,16 @@ public:
 
     std::string print_model_parms() const;
 
-private:
+    bool check_colouring_corretness() const;
+    std::size_t evaluate_fitness() const;
+
+    void solve_random();
+
+public:
     ModelParams model_params;
     Loader loader;
     std::unique_ptr<Graph> graph;
+    Solver solver;
 
     std::random_device rd;
     std::mt19937 rng;

@@ -26,6 +26,13 @@ void Graph::add_edge(const std::size_t source_id, const std::size_t destination_
     source.update_neighbourship_with(destination);
 }
 
+void Graph::reset_colouring()
+{
+    for (auto& vertex : vertices) {
+        vertex.update_colour(0);
+    }
+}
+
 void Graph::BFS(const std::size_t starting_vertex_id)
 {
     std::vector<bool> visited(vertices.size());
@@ -42,6 +49,7 @@ void Graph::BFS(const std::size_t starting_vertex_id)
 
         for (const auto& neighbour : current->get_neighbours()) {
             const std::size_t neighbour_id {neighbour->get_id()};
+
             if (!visited.at(neighbour_id)) {
                 visited.at(neighbour_id) = true;
                 queue.push(neighbour);
@@ -81,69 +89,66 @@ void Graph::DFS(const std::size_t starting_vertex_id)
 
 bool Graph::is_bipartite()
 {
-    std::vector<bool> visited(vertices.size());
+    for (auto& vertex : vertices) {
+        if (vertex.get_colour() == 0) {
+            if (!bipartite_visit(vertex)) {
+                std::cout << "Graph is not bipartite\n";
 
-    bool bipartite_flag {bipartite_visit(&*vertices.begin(), visited)};
-
-    if (bipartite_flag) {
-        std::cout << "Graph is bipartite";
-
-        std::vector<Vertex> first_set;
-        std::vector<Vertex> second_set;
-
-        auto find_color_0 = [](const Vertex& vertex)
-        {
-            return vertex.get_colour() == 0;
-        };
-
-        std::copy_if(
-            vertices.begin(),
-            vertices.end(),
-            std::back_inserter(first_set),
-            find_color_0);
-
-        auto find_color_1 = [](const Vertex& vertex)
-        {
-            return vertex.get_colour() == 1;
-        };
-
-        std::copy_if(
-            vertices.begin(),
-            vertices.end(),
-            std::back_inserter(second_set),
-            find_color_1);
-
-        std::cout << "\n |--> Vertices in first set: [" << first_set << "]";
-        std::cout << "\n |--> Vertices in second set: [" << second_set << "]\n";
-
-        return true;
+                return false;
+            }
+        }
     }
-    else {
-        std::cout << "Graph is not bipartite\n";
 
-        return false;
-    }
+    std::cout << "Graph is bipartite";
+
+    std::vector<Vertex> first_set;
+    std::vector<Vertex> second_set;
+
+    auto find_first_colour = [](const Vertex& vertex)
+    {
+        return vertex.get_colour() == 1;
+    };
+
+    std::copy_if(
+        vertices.begin(),
+        vertices.end(),
+        std::back_inserter(first_set),
+        find_first_colour);
+
+    auto find_second_colour = [](const Vertex& vertex)
+    {
+        return vertex.get_colour() == 2;
+    };
+
+    std::copy_if(
+        vertices.begin(),
+        vertices.end(),
+        std::back_inserter(second_set),
+        find_second_colour);
+
+    std::cout << "\n |--> Vertices in first set: [" << first_set << "]";
+    std::cout << "\n |--> Vertices in second set: [" << second_set << "]\n";
+
+    return true;
 }
 
-bool Graph::bipartite_visit(Vertex* vertex, std::vector<bool>& visited)
+bool Graph::bipartite_visit(Vertex& vertex)
 {
-    if (const std::size_t id {vertex->get_id()}; id == 0) {
-        visited.at(id) = true;
-        vertex->update_colour(1);
-    }
+    std::queue<Vertex*> queue;
+    vertex.update_colour(1);
+    queue.push(&vertex);
 
-    for (const auto& neighbour : vertex->get_neighbours()) {
-        const std::size_t neighbour_id {neighbour->get_id()};
+    while (!queue.empty()) {
+        const Vertex* const current {queue.front()};
+        queue.pop();
 
-        if (!visited.at(neighbour_id)) {
-            visited.at(neighbour_id) = true;
-            neighbour->update_colour(!vertex->get_colour());
-
-            if (!bipartite_visit(neighbour, visited))
+        for (const auto& neighbour : current->get_neighbours()) {
+            if (neighbour->get_colour() == 0) {
+                neighbour->update_colour(3 - current->get_colour());
+                queue.push(neighbour);
+            }
+            else if (neighbour->get_colour() == current->get_colour())
                 return false;
-        }
-        else if (neighbour->get_colour() == vertex->get_colour()) {
-            return false;
         }
     }
 
