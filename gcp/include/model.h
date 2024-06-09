@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <random>
+#include <set>
 
 class Graph;
 
@@ -19,12 +20,14 @@ public:
         const std::size_t source_id,
         const std::size_t destination_id);
 
+    std::size_t calculate_max_degree() const;
     std::string print_model_parms() const;
 
-    bool check_colouring_corretness() const;
-    std::size_t evaluate_fitness() const;
+    bool check_colouring_corretness(const Graph& solution) const;
+    std::size_t evaluate_fitness(const Graph& solution);
 
-    void solve_random();
+    Graph solve_random(Graph graph);
+    Graph solve_greedy(Graph graph);
 
 public:
     ModelParams model_params;
@@ -34,6 +37,7 @@ public:
 
     std::random_device rd;
     std::mt19937 rng;
+    std::set<std::size_t> final_colours;
 
     friend class Loader;
 };

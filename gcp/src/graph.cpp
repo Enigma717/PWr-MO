@@ -7,13 +7,49 @@
 #include <algorithm>
 #include <iterator>
 
+Graph::Graph(const Graph& graph)
+{
+    const std::size_t graph_size {graph.vertices.size()};
+    vertices.reserve(graph_size);
+    colours.reserve(graph_size);
+
+    for (std::size_t i {0}; i < graph_size; i++) {
+        vertices.push_back(Vertex(graph.vertices.at(i).get_id()));
+        colours.push_back(&(vertices.at(i).get_colour_ref()));
+    }
+
+    for (const auto& vertex : graph.vertices) {
+        for (const auto& neighbour : vertex.get_neighbours())
+            add_edge(vertex.get_id(), neighbour->get_id());
+    }
+}
+
+Graph& Graph::operator=(const Graph& graph)
+{
+    const std::size_t graph_size {graph.vertices.size()};
+    vertices.reserve(graph_size);
+    colours.reserve(graph_size);
+
+    for (std::size_t i {0}; i < graph_size; i++) {
+        vertices.push_back(Vertex(graph.vertices.at(i).get_id()));
+        colours.push_back(&(vertices.at(i).get_colour_ref()));
+    }
+
+    for (const auto& vertex : graph.vertices) {
+        for (const auto& neighbour : vertex.get_neighbours())
+            add_edge(vertex.get_id(), neighbour->get_id());
+    }
+
+    return *this;
+}
+
 Graph::Graph(const std::size_t size)
 {
     vertices.reserve(size);
     colours.reserve(size);
 
     for (std::size_t i {0}; i < size; i++) {
-        vertices.emplace_back();
+        vertices.push_back(Vertex(i));
         colours.push_back(&(vertices.at(i).get_colour_ref()));
     }
 }
@@ -24,6 +60,7 @@ void Graph::add_edge(const std::size_t source_id, const std::size_t destination_
     Vertex& destination {vertices.at(destination_id)};
 
     source.update_neighbourship_with(destination);
+    destination.update_indirect_neighbourship_with(source);
 }
 
 void Graph::reset_colouring()

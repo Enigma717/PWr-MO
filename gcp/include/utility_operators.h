@@ -29,6 +29,22 @@ inline std::ostream& operator<<(std::ostream& stream, const std::set<std::size_t
     return stream;
 }
 
+inline std::ostream& operator<<(std::ostream& stream, const std::vector<std::size_t>& colours)
+{
+    const std::size_t size {colours.size()};
+
+    for (std::size_t i {0uz}; i < size; i++) {
+        const auto& colour {colours.at(i)};
+
+        stream << colour;
+
+        if (i != size - 1)
+            stream << ", ";
+    }
+
+    return stream;
+}
+
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<std::size_t*>& colours)
 {
     const std::size_t size {colours.size()};

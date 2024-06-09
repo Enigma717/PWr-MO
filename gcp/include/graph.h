@@ -8,6 +8,11 @@
 class Graph {
 public:
     Graph() = delete;
+    ~Graph() = default;
+    Graph(const Graph&);
+    Graph& operator=(const Graph&);
+    Graph(Graph&&) = default;
+    Graph& operator=(Graph&&) = default;
     Graph(const std::size_t);
 
     void add_edge(const std::size_t source_id, const std::size_t destination_id);

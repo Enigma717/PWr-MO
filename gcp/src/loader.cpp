@@ -45,6 +45,8 @@ void Loader::parse_instance(const std::string& file_path)
         case 'e': parse_edge(read_line); break;
         }
     }
+
+    model_ref.model_params.max_degree = model_ref.calculate_max_degree();
 }
 
 void Loader::parse_header(const std::string& read_line)
