@@ -1,6 +1,8 @@
 #pragma once
 
+#include "./graph.h"
 #include "./vertex.h"
+#include "./structs/solution.h"
 
 #include <ostream>
 #include <vector>
@@ -97,7 +99,7 @@ inline std::ostream& operator<<(std::ostream& stream, const std::set<Vertex*>& n
 {
     for (auto it {neighbours.begin()}; it != neighbours.end(); it++) {
 
-        stream << **it;
+        stream << &**it;
 
         if (it != std::prev(neighbours.end(), 1))
             stream << ", ";
@@ -109,4 +111,18 @@ inline std::ostream& operator<<(std::ostream& stream, const std::set<Vertex*>& n
 inline bool operator<(const Vertex& lhs, const Vertex& rhs)
 {
     return lhs.get_id() < rhs.get_id();
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Graph& graph)
+{
+    stream << graph.vertices;
+
+    return stream;
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Solution& solution)
+{
+    stream << "Graph: [" << solution.graph << "], fitness: " << solution.fitness;
+
+    return stream;
 }

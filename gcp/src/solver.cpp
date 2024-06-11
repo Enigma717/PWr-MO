@@ -72,13 +72,13 @@ std::size_t Solver::find_first_avail_colour(Vertex& vertex) const
 
     std::vector<std::size_t> forbidden_colours(forbidden_colours_set.begin(), forbidden_colours_set.end());
 
-    std::cout << "\n========================================";
-    std::cout << "\n--> Vertex: " << vertex;
-    std::cout << "\n----> Neighbours: [" << neighbours << "]";
-    std::cout << "\n----> Indirect neighbours: [" << indirect_neighbours << "]";
-    std::cout << "\n----> Forbidden set: [" << forbidden_colours_set << "]";
-    std::cout << "\n----> Forbidden vector: [" << forbidden_colours << "]";
-    std::cout << "\n========================================\n";
+    // std::cout << "\n========================================";
+    // std::cout << "\n--> Vertex: " << vertex;
+    // std::cout << "\n----> Neighbours: [" << neighbours << "]";
+    // std::cout << "\n----> Indirect neighbours: [" << indirect_neighbours << "]";
+    // std::cout << "\n----> Forbidden set: [" << forbidden_colours_set << "]";
+    // std::cout << "\n----> Forbidden vector: [" << forbidden_colours << "]";
+    // std::cout << "\n========================================\n";
 
     std::size_t avail_colour {1};
     if (forbidden_colours.size() == 0) {

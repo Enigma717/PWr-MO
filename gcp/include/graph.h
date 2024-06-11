@@ -7,7 +7,7 @@
 
 class Graph {
 public:
-    Graph() = delete;
+    Graph() = default;
     ~Graph() = default;
     Graph(const Graph&);
     Graph& operator=(const Graph&);

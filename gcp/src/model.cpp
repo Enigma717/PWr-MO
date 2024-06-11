@@ -5,30 +5,37 @@
 #include <iostream>
 #include <sstream>
 
-Model::Model() : loader{*this}, graph(nullptr), solver{*this}, rng {rd()} {}
+Model::Model()
+: loader {*this},
+  base_graph {nullptr},
+  solver {*this},
+  genetic_solver {*this},
+  rng {rd()}
+{
+}
 
 void Model::load_file(const std::string& file_path)
 {
     loader.parse_instance(file_path);
 }
 
-void Model::create_graph()
+void Model::create_base_graph()
 {
-    graph = std::make_unique<Graph>(model_params.vertices);
+    base_graph = std::make_unique<Graph>(model_params.vertices);
 }
 
-void Model::add_edge_to_graph(
+void Model::add_edge_to_base_graph(
     const std::size_t source_id,
     const std::size_t destination_id)
 {
-    graph->add_edge(source_id, destination_id);
+    base_graph->add_edge(source_id, destination_id);
 }
 
 std::size_t Model::calculate_max_degree() const
 {
     std::size_t max_degree {0};
 
-    for (const auto& vertex : graph->vertices) {
+    for (const auto& vertex : base_graph->vertices) {
         const std::size_t degree {vertex.get_neighbours().size()};
 
         if (max_degree < degree) {
@@ -71,12 +78,28 @@ std::size_t Model::evaluate_fitness(const Graph& solution)
     return check_colouring_corretness(solution) ? final_colours.size() : 999'999'999;
 }
 
-Graph Model::solve_random(Graph graph)
+Graph Model::solve_random()
 {
-    graph.reset_colouring();
-    solver.random_solution(graph);
+    Graph solution {*base_graph};
+    solver.random_solution(solution);
 
-    return graph;
+    return solution;
+}
+
+Graph Model::solve_random(Graph solution)
+{
+    solution.reset_colouring();
+    solver.random_solution(solution);
+
+    return solution;
+}
+
+Graph Model::solve_greedy()
+{
+    Graph solution {*base_graph};
+    solver.greedy_solution(solution);
+
+    return solution;
 }
 
 Graph Model::solve_greedy(Graph graph)
@@ -85,4 +108,13 @@ Graph Model::solve_greedy(Graph graph)
     solver.greedy_solution(graph);
 
     return graph;
+}
+
+const Solution& Model::solve_genetic()
+{
+        // Solution& solution {genetic_solver.solve()};
+    // std::cout << "\nGENETIC SOLUTION: "
+    // return
+
+    return genetic_solver.solve();
 }

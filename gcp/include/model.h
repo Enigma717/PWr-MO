@@ -1,6 +1,8 @@
 #pragma once
 
 #include "structs/model_params.h"
+#include "structs/solution.h"
+#include "genetic_solver.h"
 #include "loader.h"
 #include "solver.h"
 
@@ -15,8 +17,8 @@ public:
     Model();
 
     void load_file(const std::string& file_path);
-    void create_graph();
-    void add_edge_to_graph(
+    void create_base_graph();
+    void add_edge_to_base_graph(
         const std::size_t source_id,
         const std::size_t destination_id);
 
@@ -26,14 +28,18 @@ public:
     bool check_colouring_corretness(const Graph& solution) const;
     std::size_t evaluate_fitness(const Graph& solution);
 
+    Graph solve_random();
     Graph solve_random(Graph graph);
+    Graph solve_greedy();
     Graph solve_greedy(Graph graph);
+    const Solution& solve_genetic();
 
 public:
     ModelParams model_params;
     Loader loader;
-    std::unique_ptr<Graph> graph;
+    std::unique_ptr<Graph> base_graph;
     Solver solver;
+    GeneticSolver genetic_solver;
 
     std::random_device rd;
     std::mt19937 rng;

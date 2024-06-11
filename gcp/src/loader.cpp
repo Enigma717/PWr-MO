@@ -66,7 +66,7 @@ void Loader::parse_metadata(const std::string& read_line)
     model_ref.model_params.vertices = std::stoi(tokens.at(2));
     model_ref.model_params.edges = std::stoi(tokens.at(3));
 
-    model_ref.create_graph();
+    model_ref.create_base_graph();
 }
 
 void Loader::parse_edge(const std::string& read_line)
@@ -75,5 +75,5 @@ void Loader::parse_edge(const std::string& read_line)
     const auto source_vertex_id {std::stoi(tokens.at(1)) - 1};
     const auto destination_vertex_id {std::stoi(tokens.at(2)) - 1};
 
-    model_ref.add_edge_to_graph(source_vertex_id, destination_vertex_id);
+    model_ref.add_edge_to_base_graph(source_vertex_id, destination_vertex_id);
 }
