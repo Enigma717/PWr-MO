@@ -16,8 +16,8 @@ public:
     void greedy_solution(Graph& graph) const;
 
 private:
-    void colour_randomly(Vertex& vertex) const;
-    std::size_t find_first_avail_colour(Vertex& vertex) const;
+    void colour_vertex_randomly(Vertex& vertex) const;
+    void colour_vertex_greedily(Vertex& vertex) const;
 
     Model& model_ref;
 };

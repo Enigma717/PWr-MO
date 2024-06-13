@@ -42,6 +42,7 @@ void Loader::parse_instance(const std::string& file_path)
         switch (line_type) {
         case 'c': parse_header(read_line); break;
         case 'p': parse_metadata(read_line); break;
+        case 'o': parse_optimum(read_line); break;
         case 'e': parse_edge(read_line); break;
         }
     }
@@ -67,6 +68,13 @@ void Loader::parse_metadata(const std::string& read_line)
     model_ref.model_params.edges = std::stoi(tokens.at(3));
 
     model_ref.create_base_graph();
+}
+
+void Loader::parse_optimum(const std::string& read_line)
+{
+    const auto tokens {tokenize(read_line, ' ')};
+
+    model_ref.model_params.optimum = std::stoi(tokens.at(1));
 }
 
 void Loader::parse_edge(const std::string& read_line)

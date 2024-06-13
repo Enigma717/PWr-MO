@@ -75,7 +75,7 @@ const Solution& GeneticSolver::solve()
 
     while (fitness_evaluations < ffe_limit && generation_number < generation_limit) {
         const std::vector<Solution> parents {tournament_selection(subgroup_size)};
-        const std::vector<Solution> offsprings {process_crossover({parents[0], parents[1]})};
+        const std::vector<Solution> offsprings {process_crossover(parents)};
 
         evolve_population(parents, offsprings);
         process_mutation();

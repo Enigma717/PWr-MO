@@ -10,7 +10,8 @@ int main()
     Model model;
 
     // model.load_file("./instances/bipartite.col");
-    model.load_file("./instances/queen5_5.col");
+    // model.load_file("./instances/queen5_5.col");
+    model.load_file("./instances/queen8_8.col");
     // model.load_file("./instances/inithx.i.1.col");
     // model.load_file("./instances/latin_square_10.col");
 
@@ -22,7 +23,7 @@ int main()
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // Graph solution {model.solve_random()};
     // Graph solution {model.solve_greedy()};
-    const Solution& solution {model.solve_genetic()};
+    Solution& solution {model.solve_genetic()};
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 
@@ -35,7 +36,7 @@ int main()
     std::cout << "\n\n========[ RESULTS ]========\n\n";
     std::cout << "|-> Solution: " << solution << "\n";
     std::cout << "|-> Solution fitness: " << model.evaluate_fitness(solution.graph) << "\n";
-    std::cout << "|-> Final colours: [" << model.final_colours << "]\n";
+    std::cout << "|-> Final colours: [" << model.get_used_colours(solution.graph) << "]\n";
     std::cout << "|-> Time elapsed: " << elapsed_time << "\n";
     std::cout << "\n===========================\n\n";
 

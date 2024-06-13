@@ -126,3 +126,18 @@ inline std::ostream& operator<<(std::ostream& stream, const Solution& solution)
 
     return stream;
 }
+
+inline auto operator<=>(const Solution& solution1, const Solution& solution2)
+{
+    return solution1.fitness <=> solution2.fitness;
+}
+
+inline std::size_t operator+(const Solution& solution1, const Solution& solution2)
+{
+    return solution1.fitness + solution2.fitness;
+}
+
+inline std::size_t operator+(double sum, const Solution& solution)
+{
+    return sum + solution.fitness;
+}

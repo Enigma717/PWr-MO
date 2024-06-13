@@ -26,13 +26,18 @@ public:
     std::string print_model_parms() const;
 
     bool check_colouring_corretness(const Graph& solution) const;
-    std::size_t evaluate_fitness(const Graph& solution);
+    bool check_no_colouring_collisions(const std::vector<std::size_t>& forbidden_colours, std::size_t vertex_colour) const;
+    std::set<std::size_t> get_used_colours(const Graph& solution) const;
+    std::vector<std::size_t> get_forbidden_colours(const Vertex& vertex) const;
+    std::size_t find_available_colour(const std::vector<std::size_t>& forbidden_colours) const;
+    Graph& fix_colouring(Graph& solution) const;
+    std::size_t evaluate_fitness(Graph& solution) const;
 
     Graph solve_random();
     Graph solve_random(Graph graph);
     Graph solve_greedy();
     Graph solve_greedy(Graph graph);
-    const Solution& solve_genetic();
+    Solution& solve_genetic();
 
 public:
     ModelParams model_params;

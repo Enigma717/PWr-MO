@@ -15,6 +15,7 @@ Graph::Graph(const Graph& graph)
 
     for (std::size_t i {0}; i < graph_size; i++) {
         vertices.push_back(Vertex(graph.vertices.at(i).get_id()));
+        vertices.at(i).update_colour(graph.vertices.at(i).get_colour());
         colours.push_back(&(vertices.at(i).get_colour_ref()));
     }
 
@@ -32,6 +33,7 @@ Graph& Graph::operator=(const Graph& graph)
 
     for (std::size_t i {0}; i < graph_size; i++) {
         vertices.push_back(Vertex(graph.vertices.at(i).get_id()));
+        vertices.at(i).update_colour(graph.vertices.at(i).get_colour());
         colours.push_back(&(vertices.at(i).get_colour_ref()));
     }
 
