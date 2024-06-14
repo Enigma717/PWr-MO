@@ -17,8 +17,8 @@ namespace
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
-    constexpr std::size_t generation_limit {50'000uz};
-    constexpr std::size_t ffe_limit {500'000uz};
+    constexpr std::size_t generation_limit {25'000uz};
+    constexpr std::size_t ffe_limit {250'000uz};
     constexpr double random_initialization_probability {0.9};
 }
 
@@ -83,7 +83,7 @@ void GeneticSolver::evaluate_population()
 
 Solution& GeneticSolver::solve()
 {
-    initialize_population(PopulationType::mixed, population_size);
+    initialize_population(PopulationType::random, population_size);
     evaluate_population();
     // print_population();
 
@@ -189,10 +189,13 @@ std::vector<Solution> GeneticSolver::process_crossover(const std::vector<Solutio
             if (first_crossing_point > second_crossing_point)
                 std::swap(first_crossing_point, second_crossing_point);
 
-            const Solution first_offspring {double_point_crossover(
-                first_parent_graph, second_parent_graph, first_crossing_point, second_crossing_point)};
-            const Solution second_offspring {double_point_crossover(
-                second_parent_graph, first_parent_graph, first_crossing_point, second_crossing_point)};
+            // const Solution first_offspring {double_point_crossover(
+                // first_parent_graph, second_parent_graph, first_crossing_point, second_crossing_point)};
+            // const Solution second_offspring {double_point_crossover(
+                // second_parent_graph, first_parent_graph, first_crossing_point, second_crossing_point)};
+
+            const Solution first_offspring {uniform_crossover(first_parent_graph, second_parent_graph)};
+            const Solution second_offspring {uniform_crossover(second_parent_graph, first_parent_graph)};
 
             offsprings.push_back(first_offspring);
             offsprings.push_back(second_offspring);
@@ -205,7 +208,6 @@ std::vector<Solution> GeneticSolver::process_crossover(const std::vector<Solutio
 
     return offsprings;
 }
-
 
 Solution GeneticSolver::double_point_crossover(
     const Graph& first_parent_graph,
@@ -228,6 +230,27 @@ Solution GeneticSolver::double_point_crossover(
         offspring_graph.vertices.at(current_position).update_colour(colour);
 
         current_position++;
+    }
+
+    return create_new_solution(std::move(offspring_graph));
+}
+
+Solution GeneticSolver::uniform_crossover(
+    const Graph& first_parent_graph,
+    const Graph& second_parent_graph)
+{
+    const std::size_t dimension {first_parent_graph.vertices.size()};
+    Graph offspring_graph {first_parent_graph};
+
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+    for (std::size_t i {0uz}; i < dimension; i++) {
+        const double probability {distribution(model_ref.rng)};
+
+        if (probability <= 0.5)
+            offspring_graph.vertices.at(i).update_colour(first_parent_graph.vertices.at(i).get_colour());
+        else
+            offspring_graph.vertices.at(i).update_colour(second_parent_graph.vertices.at(i).get_colour());
     }
 
     return create_new_solution(std::move(offspring_graph));
@@ -308,13 +331,13 @@ Solution GeneticSolver::double_point_crossover(
 //     }
 // }
 
-// void GeneticSolver::evolve_population(
-//     std::vector<Solution>& parents, std::vector<Solution>& offsprings)
-// {
-//     std::size_t current_position {0uz};
+void GeneticSolver::evolve_population(
+    std::vector<Solution>& parents, std::vector<Solution>& offsprings)
+{
+    std::size_t current_position {0uz};
 
-//     while (current_position < parents.size()) {
-//         std::swap(population.at(current_position), parents.at(current_position));
+    while (current_position < parents.size()) {
+        std::swap(population.at(current_position), parents.at(current_position));
 
         current_position++;
     }
@@ -335,18 +358,12 @@ Solution GeneticSolver::double_point_crossover(
 void GeneticSolver::process_mutation()
 {
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    std::uniform_int_distribution<std::size_t> vertex_int_distribution(0, model_ref.model_params.vertices - 1);
-    std::uniform_int_distribution<std::size_t> colour_int_distribution(1, model_ref.model_params.max_degree);
 
     for (auto& solution : population) {
         const double probability {distribution(model_ref.rng)};
 
-        if (probability < mutation_probability) {
-            const std::size_t random_vertex {vertex_int_distribution(model_ref.rng)};
-            const std::size_t random_colour {colour_int_distribution(model_ref.rng)};
-
-            solution.graph.vertices.at(random_vertex).update_colour(random_colour);
-        }
+        if (probability < mutation_probability)
+            model_ref.mutate_random_vertex(solution.graph);
     }
 }
 

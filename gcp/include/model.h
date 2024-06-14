@@ -32,11 +32,13 @@ public:
     std::size_t find_available_colour(const std::vector<std::size_t>& forbidden_colours) const;
     Graph& fix_colouring(Graph& solution) const;
     std::size_t evaluate_fitness(Graph& solution) const;
+    void mutate_random_vertex(Graph& graph);
 
     Graph solve_random();
     Graph solve_random(Graph graph);
     Graph solve_greedy();
     Graph solve_greedy(Graph graph);
+    Graph solve_simulated_annealing();
     Solution& solve_genetic();
 
 public:

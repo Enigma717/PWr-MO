@@ -14,8 +14,11 @@ public:
 
     void random_solution(Graph& graph) const;
     void greedy_solution(Graph& graph) const;
+    void simulated_annealing_solution(Graph& graph) const;
 
 private:
+    bool check_reached_optimum(const std::size_t fitness) const;
+    bool check_reached_iteration_limit(const std::size_t iteration) const;
     void colour_vertex_randomly(Vertex& vertex) const;
     void colour_vertex_greedily(Vertex& vertex) const;
 

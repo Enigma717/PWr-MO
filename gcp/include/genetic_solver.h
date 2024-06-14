@@ -29,10 +29,10 @@ private:
 
     std::size_t fitness_evaluations {0};
     std::size_t generation_number {0};
-    std::size_t population_size {500};
-    std::size_t subgroup_size {7};
-    double crossing_probability {0.8};
-    double mutation_probability {0.1};
+    std::size_t population_size {50};
+    std::size_t subgroup_size {4};
+    double crossing_probability {0.5};
+    double mutation_probability {0.2};
 
     std::string print_generation_info();
     bool check_reached_optimum();
@@ -56,6 +56,9 @@ private:
         const Graph& second_parent_graph,
         const std::size_t first_crossing_point,
         const std::size_t second_crossing_point);
+    Solution uniform_crossover(
+        const Graph& first_parent_graph,
+        const Graph& second_parent_graph);
     Solution create_new_solution(Graph&& graph);
     double fitness_evaluation(Solution& solution);
 };

@@ -161,6 +161,17 @@ std::size_t Model::evaluate_fitness(Graph& solution) const
         : get_used_colours(fix_colouring(solution)).size();
 }
 
+void Model::mutate_random_vertex(Graph& graph)
+{
+    std::uniform_int_distribution<std::size_t> vertex_int_distribution(0, model_params.vertices - 1);
+    std::uniform_int_distribution<std::size_t> colour_int_distribution(1, model_params.max_degree);
+
+    const std::size_t random_vertex {vertex_int_distribution(rng)};
+    const std::size_t random_colour {colour_int_distribution(rng)};
+
+    graph.vertices.at(random_vertex).update_colour(random_colour);
+}
+
 Graph Model::solve_random()
 {
     Graph solution {*base_graph};
@@ -191,6 +202,14 @@ Graph Model::solve_greedy(Graph graph)
     solver.greedy_solution(graph);
 
     return graph;
+}
+
+Graph Model::solve_simulated_annealing()
+{
+    Graph solution {*base_graph};
+    solver.simulated_annealing_solution(solution);
+
+    return solution;
 }
 
 Solution& Model::solve_genetic()
