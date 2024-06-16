@@ -20,8 +20,9 @@ Graph::Graph(const Graph& graph)
     }
 
     for (const auto& vertex : graph.vertices) {
-        for (const auto& neighbour : vertex.get_neighbours())
+        for (const auto& neighbour : vertex.get_neighbours()) {
             add_edge(vertex.get_id(), neighbour->get_id());
+        }
     }
 }
 

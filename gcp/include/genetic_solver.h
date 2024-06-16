@@ -4,7 +4,6 @@
 #include "./structs/solution.h"
 #include "./graph.h"
 
-#include <tuple>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -23,14 +22,14 @@ public:
 private:
     Model& model_ref;
     std::vector<Solution> population;
-    Solution best_solution;
-    Solution worst_solution;
+    Solution* best_solution;
+    Solution* worst_solution;
     std::size_t avg_fitness;
 
     std::size_t fitness_evaluations {0};
     std::size_t generation_number {0};
-    std::size_t population_size {50};
-    std::size_t subgroup_size {4};
+    std::size_t population_size {5};
+    std::size_t subgroup_size {5};
     double crossing_probability {0.5};
     double mutation_probability {0.2};
 
@@ -46,7 +45,8 @@ private:
 
     std::vector<Solution> tournament_selection(std::size_t subgroup_size);
     std::vector<Solution> process_crossover(const std::vector<Solution>& parents);
-    void normalize_parent_colours(const std::vector<Solution*>& parents);
+    void normalize_parent_colours(
+        const Graph& first_parent_graph, const Graph& second_parent_graph);
     void evolve_population(
         std::vector<Solution>& parents, std::vector<Solution>& offsprings);
     void process_mutation();
@@ -57,8 +57,9 @@ private:
         const std::size_t first_crossing_point,
         const std::size_t second_crossing_point);
     Solution uniform_crossover(
-        const Graph& first_parent_graph,
-        const Graph& second_parent_graph);
+        const Graph& first_parent_graph, const Graph& second_parent_graph);
+    std::vector<Solution> partition_crossover(
+        const Graph& first_parent_graph, const Graph& second_parent_graph);
     Solution create_new_solution(Graph&& graph);
     double fitness_evaluation(Solution& solution);
 };
