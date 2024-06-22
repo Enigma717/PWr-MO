@@ -1,4 +1,4 @@
-CPPFLAGS = -Wall -Wextra -pedantic -O3 -std=c++23
+CPPFLAGS = -Wall -Wextra -pedantic -O3 -std=c++23 -g
 
 .PHONY = all clean
 

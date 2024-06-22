@@ -99,7 +99,7 @@ inline std::ostream& operator<<(std::ostream& stream, const std::set<Vertex*>& n
 {
     for (auto it {neighbours.begin()}; it != neighbours.end(); it++) {
 
-        stream << &**it;
+        stream << **it;
 
         if (it != std::prev(neighbours.end(), 1))
             stream << ", ";
@@ -140,4 +140,11 @@ inline std::size_t operator+(const Solution& solution1, const Solution& solution
 inline std::size_t operator+(double sum, const Solution& solution)
 {
     return sum + solution.fitness;
+}
+
+inline auto operator<=>(
+    const std::pair<std::size_t, std::size_t>& pair1,
+    const std::pair<std::size_t, std::size_t>& pair2)
+{
+    return pair1.second <=> pair2.second;
 }
