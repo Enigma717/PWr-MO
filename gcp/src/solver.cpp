@@ -6,13 +6,13 @@
 
 #include <algorithm>
 #include <iostream>
+#include <chrono>
 #include <vector>
+#include <sstream>
 
 namespace
 {
-    constexpr double initial_sa_temperature {100'000.0};
-    constexpr double cooling_rate {0.999};
-    constexpr std::size_t maximum_sa_iterations {250'000uz};
+    constexpr std::size_t maximum_sa_iterations {150'000uz};
 }
 
 Solver::Solver(Model& model_ref) : model_ref{model_ref} {}
@@ -31,7 +31,31 @@ void Solver::greedy_solution(Graph& graph) const
 
 void Solver::simulated_annealing_solution(Graph& graph) const
 {
-    double current_temperature {initial_sa_temperature};
+    std::ofstream results_file;
+    std::stringstream results_path;
+    results_path << "./csv/results/sa/sa_results_" << model_ref.model_params.instance_name << ".csv";
+    results_file.open(results_path.str(), std::ios_base::app);
+
+    std::ofstream plot_file;
+    std::stringstream plot_data_path;
+    plot_data_path << "./csv/results/sa/sa_plot_" << model_ref.model_params.instance_name << ".csv";
+    plot_file.open(plot_data_path.str());
+
+    if(!results_file.is_open()) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    if(!plot_file.is_open()) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    plot_file << "it; best; temp\n";
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    double current_temperature {sa_initial_temperature};
 
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
@@ -64,11 +88,32 @@ void Solver::simulated_annealing_solution(Graph& graph) const
                 std::swap(best_solution, neighbour);
         }
 
-        current_temperature *= cooling_rate;
+        if (iteration % 10 == 0) {
+            plot_file << iteration << "; "
+                << best_solution.fitness << "; "
+                << current_temperature << "\n";
+        }
+
+        current_temperature *= sa_cooling_rate;
         iteration++;
     }
 
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
+
+    results_file << sa_initial_temperature << "; "
+        << sa_cooling_rate << "; "
+        << best_solution.fitness << "; "
+        << elapsed_time << "\n";
+
+    plot_file << iteration << "; "
+        << best_solution.fitness << "; "
+        << current_temperature << "\n";
+
     std::swap(graph, best_solution.graph);
+
+    plot_file.close();
+    results_file.close();
 }
 
 bool Solver::check_reached_optimum(const std::size_t fitness) const

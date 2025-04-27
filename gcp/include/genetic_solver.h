@@ -18,9 +18,16 @@ public:
     GeneticSolver() = delete;
     GeneticSolver(Model& model_ref);
 
-    void print_population();
-    void evaluate_population();
+    double variance();
     Solution& solve();
+
+    std::size_t fitness_evaluations {0};
+    std::size_t generation_number {0};
+    std::size_t population_size {100};
+    std::size_t subgroup_size {5};
+    double crossing_probability {0.4};
+    double mutation_probability {0.2};
+    CrossoverType crossover_type {CrossoverType::partition};
 
 private:
     Model& model_ref;
@@ -28,14 +35,6 @@ private:
     Solution* best_solution;
     Solution* worst_solution;
     double avg_fitness;
-
-    std::size_t fitness_evaluations {0};
-    std::size_t generation_number {0};
-    std::size_t population_size {100};
-    std::size_t subgroup_size {7};
-    double crossing_probability {0.5};
-    double mutation_probability {0.2};
-    CrossoverType crossover_type {CrossoverType::partition};
 
     std::string print_generation_info();
     bool check_reached_optimum();
@@ -47,6 +46,9 @@ private:
     void greedy_initialization();
     void mixed_initialization();
 
+    void print_population();
+    void evaluate_population(std::ofstream& csv_file);
+
     std::vector<Solution> tournament_selection(std::size_t subgroup_size);
     std::vector<Solution> crossover_parents(std::vector<Solution>& parents);
     std::vector<Solution> process_crossover(
@@ -54,7 +56,6 @@ private:
     void evolve_population(
         std::vector<Solution>& parents, std::vector<Solution>& offsprings);
     void process_mutation();
-
 
     std::vector<Solution> process_double_point_crossover(
         const Graph& first_parent_graph, const Graph& second_parent_graph);

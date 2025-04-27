@@ -16,6 +16,10 @@ public:
     void greedy_solution(Graph& graph) const;
     void simulated_annealing_solution(Graph& graph) const;
 
+    double sa_initial_temperature {50'000.0};
+    double sa_cooling_rate {0.995};
+
+
 private:
     bool check_reached_optimum(const std::size_t fitness) const;
     bool check_reached_iteration_limit(const std::size_t iteration) const;

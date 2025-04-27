@@ -31,10 +31,14 @@ void Loader::parse_instance(const std::string& file_path)
     std::ifstream input_stream;
     input_stream.open(file_path);
 
+    std::cout << "\nFILE PATH: " << file_path;
+
     if(!input_stream.is_open()) {
         perror("Error opening file");
         exit(EXIT_FAILURE);
     }
+
+    reading_first_line = true;
 
     while (getline(input_stream, read_line)) {
         const char& line_type {read_line.at(0)};

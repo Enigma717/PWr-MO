@@ -3,6 +3,7 @@
 #include "../include/utility_operators.h"
 
 #include <iostream>
+#include <chrono>
 #include <random>
 #include <ranges>
 #include <algorithm>
@@ -18,8 +19,8 @@ namespace
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
-    constexpr std::size_t generation_limit {50'000uz};
-    constexpr std::size_t ffe_limit {25'000uz};
+    constexpr std::size_t generation_limit {100'000uz};
+    constexpr std::size_t ffe_limit {200'000uz};
     constexpr double random_initialization_probability {0.9};
 
     constexpr std::pair<std::size_t, std::size_t> get_second(std::pair<std::size_t, std::size_t> elem)
@@ -66,7 +67,7 @@ bool GeneticSolver::check_reached_gen_limit()
     return generation_number >= generation_limit;
 }
 
-void GeneticSolver::evaluate_population()
+void GeneticSolver::evaluate_population(std::ofstream& csv_file)
 {
     auto new_best_solution {&*std::min_element(population.begin(), population.end())};
     auto new_worst_solution {&*std::max_element(population.begin(), population.end())};
@@ -93,103 +94,55 @@ void GeneticSolver::evaluate_population()
 
     if (generation_number % print_info_threshold == 0 && generation_number != 0)
         std::cout << print_generation_info();
+
+    if (generation_number % 10 == 0) {
+        csv_file << generation_number << "; "
+            << best_solution->fitness << "; "
+            << worst_solution->fitness << "; "
+            << avg_fitness << "\n";
+    }
+}
+
+double GeneticSolver::variance()
+{
+    double sum {0.0};
+
+    for (const auto& solution : population)
+        sum += std::pow((solution.fitness - avg_fitness), 2);
+
+    return sqrt(sum / (population_size - 1));
 }
 
 Solution& GeneticSolver::solve()
 {
-    initialize_population(PopulationType::random, population_size);
-    // print_population();
+    std::ofstream results_file;
+    std::stringstream results_path;
+    results_path << "./csv/results/ga/ga_results_" << model_ref.model_params.instance_name << ".csv";
+    results_file.open(results_path.str(), std::ios_base::app);
+
+    std::ofstream plot_file;
+    std::stringstream plot_data_path;
+    plot_data_path << "./csv/results/ga/ga_plot_" << model_ref.model_params.instance_name << ".csv";
+    plot_file.open(plot_data_path.str());
+
+    if(!results_file.is_open()) {
+        perror("Error opening results file");
+        exit(EXIT_FAILURE);
+    }
+
+    if(!plot_file.is_open()) {
+        perror("Error opening plot file");
+        exit(EXIT_FAILURE);
+    }
+
+    plot_file << "gen; best; worst; avg\n";
 
     std::cout << "\n\n===========================\n\n";
 
-    // Graph first_graph(10);
-    // Graph second_graph(10);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    // first_graph.vertices.at(0).update_colour((11 - 1));
-    // first_graph.vertices.at(1).update_colour((12 - 1));
-    // first_graph.vertices.at(2).update_colour((13 - 1));
-    // first_graph.vertices.at(3).update_colour((14 - 1));
-    // first_graph.vertices.at(4).update_colour((14 - 1));
-    // first_graph.vertices.at(5).update_colour((11 - 1));
-    // first_graph.vertices.at(6).update_colour((12 - 1));
-    // first_graph.vertices.at(7).update_colour((11 - 1));
-    // first_graph.vertices.at(8).update_colour((14 - 1));
-    // first_graph.vertices.at(9).update_colour((11 - 1));
-
-    // first_graph.add_edge(0, 1);
-    // first_graph.add_edge(0, 2);
-    // first_graph.add_edge(0, 3);
-    // first_graph.add_edge(1, 0);
-    // first_graph.add_edge(1, 2);
-    // first_graph.add_edge(1, 5);
-    // first_graph.add_edge(2, 0);
-    // first_graph.add_edge(2, 1);
-    // first_graph.add_edge(2, 3);
-    // first_graph.add_edge(2, 6);
-    // first_graph.add_edge(3, 0);
-    // first_graph.add_edge(3, 2);
-    // first_graph.add_edge(3, 5);
-    // first_graph.add_edge(4, 7);
-    // first_graph.add_edge(4, 9);
-    // first_graph.add_edge(5, 1);
-    // first_graph.add_edge(5, 3);
-    // first_graph.add_edge(5, 9);
-    // first_graph.add_edge(6, 2);
-    // first_graph.add_edge(6, 4);
-    // first_graph.add_edge(7, 4);
-    // first_graph.add_edge(7, 8);
-    // first_graph.add_edge(8, 7);
-    // first_graph.add_edge(8, 9);
-    // first_graph.add_edge(9, 4);
-    // first_graph.add_edge(9, 5);
-    // first_graph.add_edge(9, 8);
-
-    // second_graph.vertices.at(0).update_colour(2);
-    // second_graph.vertices.at(1).update_colour(2);
-    // second_graph.vertices.at(2).update_colour(1);
-    // second_graph.vertices.at(3).update_colour(3);
-    // second_graph.vertices.at(4).update_colour(3);
-    // second_graph.vertices.at(5).update_colour(4);
-    // second_graph.vertices.at(6).update_colour(3);
-    // second_graph.vertices.at(7).update_colour(3);
-    // second_graph.vertices.at(8).update_colour(1);
-    // second_graph.vertices.at(9).update_colour(2);
-
-    // second_graph.add_edge(0, 1);
-    // second_graph.add_edge(0, 2);
-    // second_graph.add_edge(0, 3);
-    // second_graph.add_edge(1, 0);
-    // second_graph.add_edge(1, 2);
-    // second_graph.add_edge(1, 5);
-    // second_graph.add_edge(2, 0);
-    // second_graph.add_edge(2, 1);
-    // second_graph.add_edge(2, 3);
-    // second_graph.add_edge(2, 6);
-    // second_graph.add_edge(3, 0);
-    // second_graph.add_edge(3, 2);
-    // second_graph.add_edge(3, 5);
-    // second_graph.add_edge(4, 7);
-    // second_graph.add_edge(4, 9);
-    // second_graph.add_edge(5, 1);
-    // second_graph.add_edge(5, 3);
-    // second_graph.add_edge(5, 9);
-    // second_graph.add_edge(6, 2);
-    // second_graph.add_edge(6, 4);
-    // second_graph.add_edge(7, 4);
-    // second_graph.add_edge(7, 8);
-    // second_graph.add_edge(8, 7);
-    // second_graph.add_edge(8, 9);
-    // second_graph.add_edge(9, 4);
-    // second_graph.add_edge(9, 5);
-    // second_graph.add_edge(9, 8);
-
-    // Solution first(std::move(first_graph));
-    // Solution second(std::move(second_graph));
-
-    // std::swap(population.at(0), first);
-    // std::swap(population.at(1), second);
-
-    evaluate_population();
+    initialize_population(PopulationType::random, population_size);
+    evaluate_population(plot_file);
 
     while (!check_reached_ffe_limit() && !check_reached_gen_limit() && !check_reached_optimum()) {
         std::vector<Solution> parents {tournament_selection(subgroup_size)};
@@ -197,12 +150,31 @@ Solution& GeneticSolver::solve()
 
         evolve_population(parents, offsprings);
         process_mutation();
-        evaluate_population();
+        evaluate_population(plot_file);
 
         generation_number++;
     }
 
     std::cout << print_generation_info();
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
+
+
+    results_file << generation_number << "; "
+        << best_solution->fitness << "; "
+        << worst_solution->fitness << "; "
+        << avg_fitness << "; "
+        << variance() << "; "
+        << elapsed_time << "\n";
+
+    plot_file << generation_number << "; "
+        << best_solution->fitness << "; "
+        << worst_solution->fitness << "; "
+        << avg_fitness << "\n";
+
+    plot_file.close();
+    results_file.close();
 
     return *best_solution;
 }
@@ -405,28 +377,16 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
     std::vector<Solution> offsprings;
     offsprings.reserve(building_blocks.size());
 
-    // std::cout << "\n-------------[FINAL BUILDING BLOCKS]---------------\n";
     for (const auto& block : building_blocks) {
-        // std::cout << "\n\nBlock in partition: [" << block << "]\n";
         Graph new_offspring_graph {second_parent_graph};
 
-        // std::cout << "\nNew offspring graph before change: " << new_offspring_graph;
         for (const auto index : block) {
             const auto first_parent_colour {first_parent_graph.vertices.at(index).get_colour()};
-            // std::cout << "\nUpdating offspring at vertex: " << index + 1 << " into colour: " << std::hex << first_parent_colour;
             new_offspring_graph.vertices.at(index).update_colour(first_parent_colour);
         }
-        // std::cout << "\nNew offspring graph after change: " << new_offspring_graph;
-        offsprings.push_back(create_new_solution(std::move(new_offspring_graph)));
-        // std::cout << "\nNew offspring graph after pushing: " << offsprings.back();
-    }
 
-    // std::cout << "\n\n\nFINAL OFFSPRINGS: [";
-    // for (const auto& solution : offsprings) {
-        // std::cout << "\nOffspring: [" << solution << "]";
-        // std::cout << "\nFIRST VERTEX COLOUR: " << solution.graph.vertices.at(0).get_colour();
-    // }
-    // std::cout << "\n]\n\n";
+        offsprings.push_back(create_new_solution(std::move(new_offspring_graph)));
+    }
 
     return offsprings;
 }
@@ -435,10 +395,6 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
     Graph& first_parent_graph,
     Graph& second_parent_graph)
 {
-    // std::cout << "\n\n==============[NORMALIZATION]=============\n\n";
-    // std::cout << "\nFirst parent (" << &first_parent_graph << "): " << first_parent_graph;
-    // std::cout << "\nSecond parent (" << &second_parent_graph << "): " << second_parent_graph;
-
     using ColoursMap = std::map<std::size_t, std::size_t>;
     using ColoursPair = std::pair<std::size_t, std::size_t>;
 
@@ -472,8 +428,9 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
     }
 
     for (const auto& elem : common_colours_counts) {
-        const double rate {static_cast<double>(elem.second) / static_cast<double>(first_parent_colour_occurrences[elem.first.first])};
-        // std::cout << "\nRate: " << rate;
+        const double rate {
+            static_cast<double>(elem.second) /
+            static_cast<double>(first_parent_colour_occurrences[elem.first.first])};
         common_colours_rates[elem.first] = rate;
     }
 
@@ -485,69 +442,25 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
         get_second);
     std::sort(colours_order.begin(), colours_order.end(), std::greater{});
 
-
-    // std::cout << "\n\n--------------[NORMALIZATION: first parent]--------------\n\n";
-    // for(const auto& elem : first_parent_colour_occurrences)
-        // std::cout << "\nColour: " << std::hex << elem.first << ", count: " << std::dec << elem.second;
-//
-    // std::cout << "\n\n--------------[NORMALIZATION: second parent]--------------\n\n";
-    // for(const auto& elem : second_parent_colour_occurrences)
-        // std::cout << "\nColour: " << std::hex << elem.first << ", count: " << std::dec << elem.second;
-//
-    // std::cout << "\n\n--------------[NORMALIZATION: common counts]--------------\n\n";
-    // for(const auto& elem : common_colours_counts)
-        // std::cout << "\nColours counts pairs: [" << std::hex << elem.first.first << ", " << std::dec << elem.first.second << "], count: " << elem.second;
-//
-    // std::cout << "\n\n--------------[NORMALIZATION: common rates]--------------\n\n";
-    // for(const auto& elem : common_colours_rates)
-        // std::cout << "\nColours rates pairs: [" << std::hex << elem.first.first << ", " << std::dec << elem.first.second << "], rate: " << elem.second;
-//
-    // std::cout << "\n\n--------------[NORMALIZATION: colours order]--------------\n\n";
-    // for (const auto& pair : colours_order)
-        // std::cout << "\nColours orders pairs: [" << pair.first << ", " << std::hex << pair.second << "]";
-
     std::set<std::size_t> free_colours;
-    for (const auto& colours : second_parent_colour_occurrences) {
+    for (const auto& colours : second_parent_colour_occurrences)
         free_colours.insert(colours.first);
-    }
 
     std::set<std::size_t> unmatched_colours;
-    for (const auto& colours : first_parent_colour_occurrences) {
+    for (const auto& colours : first_parent_colour_occurrences)
         unmatched_colours.insert(colours.first);
-    }
 
 
     std::vector<ColoursPair> colours_to_use;
     colours_to_use.reserve(first_parent_colour_occurrences.size());
 
-    std::size_t iteration {0uz};
-
     for (const auto& pair : colours_order) {
-        // std::cout << "\nIteration: " << iteration;
-        // std::cout << "\nFree colours in for loop start: [" << free_colours << "]";
-        // std::cout << "\nUnmatched colours in for loop start: [" << unmatched_colours << "]";
-
-        //FILTER THE ELEMENTS
         auto matching_pairs = common_colours_rates | std::views::filter([&](auto& v) {
-            // std::cout << "\n\nINSIDE FILTER V.FIRST.FIRST: " << v.first.first;
-            // std::cout << "\nINSIDE FILTER PAIR.SECOND: " << pair.second;
-            // std::cout << "\nINSIDE FILTER V.FIRST SECOND: " << v.first.second;
-            // std::cout << "\nINSIDE FILTER CONTAINS: " << free_colours.contains(v.first.second) << "\n";
             return v.first.first == pair.second && free_colours.contains(v.first.second);
         });
 
-        if (matching_pairs.empty()) {
-            // std::cout << "\nMATHICNG PAIRS EMPTY1 :DDD\n";
-//
-            // std::cout << "\nFree colours: [" << free_colours << "]";
-            // std::cout << "\nUnmatched colours: [" << unmatched_colours << "]";
-//
-            // std::cout << "\nMATHICNG PAIRS EMPTY2 :DDD\n";
+        if (matching_pairs.empty())
             continue;
-        }
-
-        // for (auto m : matching_pairs)
-            // std::cout << "\nFound match: [" << m.first.first << ", " << m.first.second << "], rate: " << m.second;
 
         auto best_match = *std::max_element(
             matching_pairs.begin(),
@@ -559,48 +472,16 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
         free_colours.erase(best_match.first.second);
         unmatched_colours.erase(best_match.first.first);
 
-        // std::cout << "\nBest match: [" << best_match.first.first << ", " << best_match.first.second << "], rate: " << best_match.second;
-
         colours_to_use.push_back(std::make_pair(best_match.first.first, best_match.first.second));
-        iteration++;
-
-        // std::cout << "\nFree colours in for loop end: [" << free_colours << "]";
-        // std::cout << "\nUnmatched colours in for loop end: [" << unmatched_colours << "]";
     }
-
-    // std::cout << "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SIEMA ENUI:D \n";
-
-    // std::cout << "\nFree colours: [" << free_colours << "]";
-    // std::cout << "\nUnmatched colours: [" << unmatched_colours << "]";
 
     if (!free_colours.empty() && !unmatched_colours.empty()) {
-        // std::cout << "\nŁooo tego1";
-        // std::cout << "\nNot empty";
-
         for (const auto unmatched_colour : unmatched_colours) {
-            // std::cout << "\nŁooo tego2";
             auto first_free_colour {*free_colours.begin()};
-            // std::cout << "\nŁooo tego3";
             colours_to_use.push_back(std::make_pair(unmatched_colour, first_free_colour));
-            // std::cout << "\nŁooo tego4: " << first_free_colour;
             free_colours.erase(first_free_colour);
-            // std::cout << "\nŁooo tego5: " << unmatched_colour;
-            // unmatched_colours.erase(unmatched_colour);
-            // std::cout << "\nŁooo tego6";
         }
-        // std::cout << "\nŁooo tego7";
     }
-
-    // std::cout << "\nŁooo tego8";
-    // std::cout << "\nFree colours: [" << free_colours << "]";
-    // std::cout << "\nUnmatched colours: [" << unmatched_colours << "]";
-
-
-    // for (const auto& best_pair : colours_to_use)
-        // std::cout << "\nMatching pair: [" << best_pair.first << ", " << best_pair.second << "]";
-
-    // std::cout << "\nFirst parent before normalization: " << first_parent_graph;
-    // std::cout << "\nSecond parent before normalization: " << second_parent_graph;
 
     std::vector<std::size_t> mismatches;
 
@@ -609,19 +490,19 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
         Vertex& second_vertex {second_parent_graph.vertices.at(i)};
         const std::size_t second_vertex_colour {second_vertex.get_colour()};
 
-        const auto new_colour_pair {std::find_if(colours_to_use.begin(), colours_to_use.end(), [=](const auto& pair) {return second_vertex_colour == pair.second;})};
+        const auto new_colour_pair {std::find_if(
+            colours_to_use.begin(),
+            colours_to_use.end(),
+            [=](const auto& pair) {
+                return second_vertex_colour == pair.second;
+        })};
 
         if (new_colour_pair != colours_to_use.end())
             second_vertex.update_colour(new_colour_pair->first);
 
-        if (first_vertex.get_colour() != second_vertex.get_colour()) {
-            // std::cout << "\nColours mismatch at vertex [" << i + 1 << "]: first parent - " << first_vertex.get_colour() << " | second parent - " << second_vertex.get_colour();
+        if (first_vertex.get_colour() != second_vertex.get_colour())
             mismatches.push_back(i);
-        }
     }
-
-    // std::cout << "\nFirst parent after normalization: " << first_parent_graph;
-    // std::cout << "\nSecond parent after normalization: " << second_parent_graph;
 
     std::vector<bool> mismatches_used(mismatches.size());
     std::vector<std::vector<std::size_t>> building_blocks;
@@ -631,47 +512,29 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
             continue;
 
         const auto mismatch {mismatches.at(i)};
-        // std::cout << "\nCurrent mismatch: " << mismatch;
-        // std::cout << "\nMismatches: [" << mismatches << "]";
-        // std::cout << "\nMismatches_used: [";
-        // for (const auto used : mismatches_used)
-            // std::cout << used << ", ";
-        // std::cout << "]";
         std::vector<std::size_t> building_block;
         building_block.push_back(mismatch);
         mismatches_used.at(i) = true;
 
         auto neighbours {first_parent_graph.vertices.at(mismatch).get_neighbours()};
 
-        // std::cout << "\n AFTER Mismatches: [" << mismatches << "]";
-        // std::cout << "\n AFTER Mismatches_used: [";
-        // for (const auto used : mismatches_used)
-            // std::cout << used << ", ";
-        // std::cout << "]";
-
-        // std::cout << "\nNeighbours: " << neighbours;
-
         for (auto neighbour : neighbours) {
-            // std::cout << "\nNeighbour get id: " << neighbour->get_id();
-            const auto it {std::find_if(mismatches.begin(), mismatches.end(), [=](const auto index) {return index == neighbour->get_id();})};
+            const auto it {std::find_if(
+                mismatches.begin(),
+                mismatches.end(),
+                [=](const auto index) {
+                    return index == neighbour->get_id();
+            })};
+
             if (it != mismatches.end()) {
-                // std::cout << "\nMAMY TO: " << *neighbour;
-                std::size_t index {it - mismatches.begin()};
+                auto index {it - mismatches.begin()};
                 building_block.push_back(*it);
                 mismatches_used.at(index) = true;
             }
         }
 
-        // std::cout << "\nBuilding block [" << building_block << "]\n";
         building_blocks.push_back(building_block);
     }
-
-    // std::cout << "\n\nFINAL BUILDING BLOCKS: [";
-    // for (const auto& block : building_blocks) {
-        // std::cout << "\nBuilding block: [" << block << "]";
-    // }
-
-    // std::cout << "\n]\n\n";
 
     return building_blocks;
 }
