@@ -21,11 +21,11 @@ public:
     double variance();
     Solution& solve();
 
-    std::size_t fitness_evaluations {0};
-    std::size_t generation_number {0};
-    std::size_t population_size {100};
-    std::size_t subgroup_size {5};
-    double crossing_probability {0.4};
+    std::size_t fitness_evaluations {0uz};
+    std::size_t generation_number {0uz};
+    std::size_t population_size {100uz};
+    std::size_t tournament_size {4uz};
+    double crossing_probability {0.8};
     double mutation_probability {0.2};
     CrossoverType crossover_type {CrossoverType::partition};
 
@@ -49,7 +49,7 @@ private:
     void print_population();
     void evaluate_population(std::ofstream& csv_file);
 
-    std::vector<Solution> tournament_selection(std::size_t subgroup_size);
+    std::vector<Solution> tournament_selection();
     std::vector<Solution> crossover_parents(std::vector<Solution>& parents);
     std::vector<Solution> process_crossover(
         Graph& first_parent_graph, Graph& second_parent_graph);

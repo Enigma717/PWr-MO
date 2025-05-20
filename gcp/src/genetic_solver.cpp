@@ -14,13 +14,12 @@
 
 namespace
 {
-    constexpr std::size_t minimum_subgroups {1uz};
-    constexpr std::size_t expected_winners {2uz};
+    constexpr std::size_t expected_winners {30uz};
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
     constexpr std::size_t generation_limit {100'000uz};
-    constexpr std::size_t ffe_limit {200'000uz};
+    constexpr std::size_t ffe_limit {100'000uz};
     constexpr double random_initialization_probability {0.9};
 
     constexpr std::pair<std::size_t, std::size_t> get_second(std::pair<std::size_t, std::size_t> elem)
@@ -33,9 +32,8 @@ GeneticSolver::GeneticSolver(Model& model_ref) : model_ref{model_ref} {}
 
 void GeneticSolver::print_population()
 {
-    for (std::size_t i {0uz}; i < population.size(); i++) {
+    for (std::size_t i {0uz}; i < population.size(); i++)
         std::cout << "Solution " << i << " (" << &population.at(i) << "): " << population.at(i) << "\n";
-    }
 }
 
 std::string GeneticSolver::print_generation_info()
@@ -145,7 +143,7 @@ Solution& GeneticSolver::solve()
     evaluate_population(plot_file);
 
     while (!check_reached_ffe_limit() && !check_reached_gen_limit() && !check_reached_optimum()) {
-        std::vector<Solution> parents {tournament_selection(subgroup_size)};
+        std::vector<Solution> parents {tournament_selection()};
         std::vector<Solution> offsprings {crossover_parents(parents)};
 
         evolve_population(parents, offsprings);
@@ -218,26 +216,50 @@ void GeneticSolver::mixed_initialization()
     }
 }
 
-std::vector<Solution> GeneticSolver::tournament_selection(std::size_t subgroup_size)
+std::vector<Solution> GeneticSolver::tournament_selection()
 {
-    const std::size_t subgroups_count {std::max(minimum_subgroups, population.size() / subgroup_size)};
-    const int winners_count {static_cast<int>(subgroup_size - expected_winners)};
-    const auto drop_point {std::max(0, winners_count)};
     std::vector<Solution> final_winners;
+    final_winners.reserve(expected_winners);
 
-    final_winners.reserve(subgroups_count * expected_winners);
+    std::uniform_int_distribution<std::size_t> int_distribution(0, population_size - 1);
 
-    for (const auto& subgroup : population | std::views::chunk(subgroup_size)) {
-        std::sort(subgroup.begin(), subgroup.end(), std::greater{});
+    for (std::size_t i {0uz}; i < expected_winners; i++) {
+        std::vector<Solution> tournament_group;
+        tournament_group.reserve(tournament_size);
 
-        const auto& winners {std::views::drop(subgroup, drop_point)};
+        for (std::size_t j {0uz}; j < tournament_size; j++) {
+            const auto generated_index {int_distribution(model_ref.rng)};
+            const Solution& candidate {population.at(generated_index)};
+            tournament_group.push_back(candidate);
+        }
 
-        for (const Solution& winner : winners)
-            final_winners.push_back(winner);
+        auto winner {*std::min_element(tournament_group.begin(), tournament_group.end())};
+        final_winners.push_back(winner);
     }
 
     return final_winners;
 }
+
+// std::vector<Solution> GeneticSolver::tournament_selection()
+// {
+//     const std::size_t subgroups_count {std::max(1uz, population.size() / tournament_size)};
+//     const int winners_count {static_cast<int>(tournament_size - expected_winners)};
+//     const auto drop_point {std::max(0, winners_count)};
+//     std::vector<Solution> final_winners;
+
+//     final_winners.reserve(subgroups_count * expected_winners);
+
+//     for (const auto& subgroup : population | std::views::chunk(tournament_size)) {
+//         std::sort(subgroup.begin(), subgroup.end(), std::greater{});
+
+//         const auto& winners {std::views::drop(subgroup, drop_point)};
+
+//         for (const Solution& winner : winners)
+//             final_winners.push_back(winner);
+//     }
+
+//     return final_winners;
+// }
 
 std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& parents)
 {
@@ -256,14 +278,8 @@ std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& pa
         if (probability < crossing_probability) {
             const auto new_offsprings {process_crossover(first_parent_graph, second_parent_graph)};
 
-            if (offsprings.size()) {
-                for (const auto& offspring : new_offsprings)
-                    offsprings.push_back(offspring);
-            }
-            else {
-                offsprings.push_back(first_parent);
-                offsprings.push_back(second_parent);
-            }
+            for (const auto& offspring : new_offsprings)
+                offsprings.push_back(offspring);
         }
         else {
             offsprings.push_back(first_parent);

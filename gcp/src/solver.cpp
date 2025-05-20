@@ -129,6 +129,7 @@ bool Solver::check_reached_iteration_limit(const std::size_t iteration) const
 void Solver::colour_vertex_randomly(Vertex& vertex) const
 {
     bool correctly_coloured {false};
+    std::size_t failed_retries {0uz};
     const auto forbidden_colours {model_ref.get_forbidden_colours(vertex)};
 
     do {
@@ -145,6 +146,14 @@ void Solver::colour_vertex_randomly(Vertex& vertex) const
 
         if (it == forbidden_colours.end()) {
             vertex.update_colour(drawn_colour);
+            correctly_coloured = true;
+        }
+        else {
+            failed_retries++;
+        }
+
+        if (failed_retries > (2 * model_ref.model_params.max_degree)) {
+            vertex.update_colour(model_ref.model_params.max_degree + 1);
             correctly_coloured = true;
         }
     } while (!correctly_coloured);
