@@ -39,7 +39,7 @@ public:
     Graph solve_greedy();
     Graph solve_greedy(Graph graph);
     Graph solve_simulated_annealing();
-    Solution& solve_genetic();
+    Solution& solve_genetic(double& avg);
 
 public:
     ModelParams model_params;

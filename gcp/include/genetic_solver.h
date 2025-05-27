@@ -19,11 +19,11 @@ public:
     GeneticSolver(Model& model_ref);
 
     double variance();
-    Solution& solve();
+    Solution& solve(double& avg);
 
     std::size_t fitness_evaluations {0uz};
     std::size_t generation_number {0uz};
-    std::size_t population_size {100uz};
+    std::size_t population_size {200uz};
     std::size_t tournament_size {4uz};
     double crossing_probability {0.8};
     double mutation_probability {0.2};

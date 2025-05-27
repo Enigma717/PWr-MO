@@ -14,7 +14,7 @@
 
 namespace
 {
-    constexpr std::size_t expected_winners {30uz};
+    constexpr std::size_t expected_winners {80uz};
     constexpr std::size_t dimension_divisor {4uz};
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
@@ -111,7 +111,7 @@ double GeneticSolver::variance()
     return sqrt(sum / (population_size - 1));
 }
 
-Solution& GeneticSolver::solve()
+Solution& GeneticSolver::solve(double& avg)
 {
     std::ofstream results_file;
     std::stringstream results_path;
@@ -164,6 +164,9 @@ Solution& GeneticSolver::solve()
         << worst_solution->fitness << "; "
         << avg_fitness << "; "
         << variance() << "; "
+        << tournament_size << "; "
+        << crossing_probability << "; "
+        << mutation_probability << "; "
         << elapsed_time << "\n";
 
     plot_file << generation_number << "; "
@@ -173,6 +176,8 @@ Solution& GeneticSolver::solve()
 
     plot_file.close();
     results_file.close();
+
+    avg = avg_fitness;
 
     return *best_solution;
 }
@@ -229,11 +234,12 @@ std::vector<Solution> GeneticSolver::tournament_selection()
 
         for (std::size_t j {0uz}; j < tournament_size; j++) {
             const auto generated_index {int_distribution(model_ref.rng)};
-            const Solution& candidate {population.at(generated_index)};
+            const auto candidate {population.at(generated_index)};
+
             tournament_group.push_back(candidate);
         }
 
-        auto winner {*std::min_element(tournament_group.begin(), tournament_group.end())};
+        const auto winner {*std::min_element(tournament_group.begin(), tournament_group.end())};
         final_winners.push_back(winner);
     }
 
@@ -289,6 +295,39 @@ std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& pa
 
     return offsprings;
 }
+
+// std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution*>& parents)
+// {
+//     std::uniform_real_distribution<double> real_distribution(0.0, 1.0);
+//     std::uniform_int_distribution<std::size_t> int_distribution(0, parents.size() - 1);
+
+//     std::vector<Solution> offsprings;
+//     offsprings.reserve(parents.size());
+
+//     for (std::size_t i {0uz}; i < (parents.size() / 2uz); i ++) {
+//         const double probability {real_distribution(model_ref.rng)};
+//         const auto first_parent_index {int_distribution(model_ref.rng)};
+//         const auto second_parent_index {int_distribution(model_ref.rng)};
+
+//         Solution* first_parent {parents.at(first_parent_index)};
+//         Solution* second_parent {parents.at(second_parent_index)};
+//         Graph& first_parent_graph {first_parent->graph};
+//         Graph& second_parent_graph {second_parent->graph};
+
+//         if (probability < crossing_probability) {
+//             const auto new_offsprings {process_crossover(first_parent_graph, second_parent_graph)};
+
+//             for (const auto& offspring : new_offsprings)
+//                 offsprings.push_back(offspring);
+//         }
+//         else {
+//             offsprings.push_back(*first_parent);
+//             offsprings.push_back(*second_parent);
+//         }
+//     }
+
+//     return offsprings;
+// }
 
 std::vector<Solution> GeneticSolver::process_crossover(
     Graph& first_parent_graph, Graph& second_parent_graph)

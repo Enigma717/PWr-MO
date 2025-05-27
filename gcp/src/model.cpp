@@ -212,7 +212,7 @@ Graph Model::solve_simulated_annealing()
     return solution;
 }
 
-Solution& Model::solve_genetic()
+Solution& Model::solve_genetic(double& avg)
 {
-    return genetic_solver.solve();
+    return genetic_solver.solve(avg);
 }
