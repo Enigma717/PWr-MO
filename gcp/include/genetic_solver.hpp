@@ -1,9 +1,9 @@
 #pragma once
 
-#include "./enums/crossover_type.h"
-#include "./enums/population_type.h"
-#include "./structs/solution.h"
-#include "./graph.h"
+#include "enums/crossover_type.hpp"
+#include "enums/population_type.hpp"
+#include "structs/solution.hpp"
+#include "graph.hpp"
 
 #include <vector>
 #include <fstream>
@@ -19,12 +19,15 @@ public:
     GeneticSolver(Model& model_ref);
 
     double variance();
+    void initialize_population(PopulationType population_type, std::size_t size);
+    void evaluate_population(std::ofstream& csv_file);
     Solution& solve(double& avg);
+
 
     std::size_t fitness_evaluations {0uz};
     std::size_t generation_number {0uz};
     std::size_t population_size {200uz};
-    std::size_t tournament_size {4uz};
+    std::size_t tournament_size {2uz};
     double crossing_probability {0.8};
     double mutation_probability {0.2};
     CrossoverType crossover_type {CrossoverType::partition};
@@ -41,13 +44,11 @@ private:
     bool check_reached_ffe_limit();
     bool check_reached_gen_limit();
 
-    void initialize_population(PopulationType population_type, std::size_t size);
     void random_initialization();
     void greedy_initialization();
     void mixed_initialization();
 
     void print_population();
-    void evaluate_population(std::ofstream& csv_file);
 
     std::vector<Solution> tournament_selection();
     std::vector<Solution> crossover_parents(std::vector<Solution>& parents);

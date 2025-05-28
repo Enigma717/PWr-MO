@@ -1,6 +1,6 @@
-#include "../include/genetic_solver.h"
-#include "../include/model.h"
-#include "../include/utility_operators.h"
+#include "genetic_solver.hpp"
+#include "model.hpp"
+#include "utility_operators.hpp"
 
 #include <iostream>
 #include <chrono>
@@ -45,6 +45,7 @@ std::string GeneticSolver::print_generation_info()
         << "\t||\tBest fitness: " << best_solution->fitness
         << " \t||\tWorst fitness: " << worst_solution->fitness
         << "\t||\tAverage fitness: " << avg_fitness
+        << "\t||\tPopulation size: " << population_size
         << "\t||\tFFE: " << fitness_evaluations << "\n";
 
     return log.str();
@@ -136,6 +137,9 @@ Solution& GeneticSolver::solve(double& avg)
     plot_file << "gen; best; worst; avg\n";
 
     std::cout << "\n\n===========================\n\n";
+
+    generation_number = 0;
+    fitness_evaluations = 0;
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -271,10 +275,14 @@ std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& pa
 {
     std::uniform_real_distribution<double> real_distribution(0.0, 1.0);
 
+    std::size_t parents_count {parents.size()};
     std::vector<Solution> offsprings;
-    offsprings.reserve(parents.size());
+    offsprings.reserve(parents_count);
 
-    for (std::size_t i {0uz}; i < parents.size(); i += parents_pair_step) {
+    if (parents_count < 2)
+        return {parents.at(0)};
+
+    for (std::size_t i {0uz}; i < parents_count; i += parents_pair_step) {
         const double probability {real_distribution(model_ref.rng)};
         Solution first_parent {parents.at(i)};
         Solution second_parent {parents.at(i + 1)};
@@ -626,7 +634,7 @@ void GeneticSolver::process_mutation()
 
         if (probability < mutation_probability) {
             model_ref.mutate_random_vertex(solution.graph);
-            solution.fitness = model_ref.evaluate_fitness(solution.graph);
+            solution.fitness = fitness_evaluation(solution);
         }
     }
 }

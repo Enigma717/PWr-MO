@@ -1,6 +1,6 @@
-#include "../include/model.h"
-#include "../include/graph.h"
-#include "../include/utility_operators.h"
+#include "model.hpp"
+#include "graph.hpp"
+#include "utility_operators.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -10,6 +10,7 @@ Model::Model()
   base_graph {nullptr},
   solver {*this},
   genetic_solver {*this},
+  ltgomea_solver {*this},
   rng {rd()}
 {
 }
@@ -54,7 +55,8 @@ std::string Model::print_model_parms() const
         << "\n|-> Vertices: " << model_params.vertices
         << "\n|-> Edges: " << model_params.edges
         << "\n|-> Maximum degree: " << model_params.max_degree
-        << "\n\\-> Optimum colouring: " << model_params.optimum;
+        << "\n\\-> Optimum colouring: " << model_params.optimum
+        << "\n";
 
     return stream.str();
 }
@@ -113,21 +115,19 @@ std::vector<std::size_t> Model::get_forbidden_colours(const Vertex& vertex) cons
 std::size_t Model::find_available_colour(const std::vector<std::size_t>& forbidden_colours) const
 {
     std::size_t available_colour {1};
-    if (forbidden_colours.size() == 0) {
+
+    if (forbidden_colours.size() == 0)
         return available_colour;
-    }
 
     if (forbidden_colours.front() > available_colour)
         return available_colour;
 
     for (std::size_t i {0}; i < forbidden_colours.size(); i++) {
-        if (forbidden_colours.size() == 1) {
+        if (forbidden_colours.size() == 1)
             return forbidden_colours.at(0) == 1 ? 2 : 1;
-        }
 
-        if (i == forbidden_colours.size() - 1) {
+        if (i == forbidden_colours.size() - 1)
             return forbidden_colours.at(i) + 1;
-        }
 
         if (forbidden_colours.at(i + 1) - forbidden_colours.at(i) > 1) {
             available_colour = (forbidden_colours.at(i) + 1);
@@ -174,34 +174,34 @@ void Model::mutate_random_vertex(Graph& graph)
 
 Graph Model::solve_random()
 {
-    Graph solution {*base_graph};
-    solver.random_solution(solution);
+    Graph solution_graph {*base_graph};
+    solver.random_solution(solution_graph);
 
-    return solution;
+    return solution_graph;
 }
 
-Graph Model::solve_random(Graph solution)
+Graph Model::solve_random(Solution& solution)
 {
-    solution.reset_colouring();
-    solver.random_solution(solution);
+    solution.graph.reset_colouring();
+    solver.random_solution(solution.graph);
 
-    return solution;
+    return solution.graph;
 }
 
 Graph Model::solve_greedy()
 {
-    Graph solution {*base_graph};
-    solver.greedy_solution(solution);
+    Graph solution_graph {*base_graph};
+    solver.greedy_solution(solution_graph);
 
-    return solution;
+    return solution_graph;
 }
 
-Graph Model::solve_greedy(Graph graph)
+Graph Model::solve_greedy(Solution& solution)
 {
-    graph.reset_colouring();
-    solver.greedy_solution(graph);
+    solution.graph.reset_colouring();
+    solver.greedy_solution(solution.graph);
 
-    return graph;
+    return solution.graph;
 }
 
 Graph Model::solve_simulated_annealing()
@@ -215,4 +215,9 @@ Graph Model::solve_simulated_annealing()
 Solution& Model::solve_genetic(double& avg)
 {
     return genetic_solver.solve(avg);
+}
+
+void Model::solve_ltgomea()
+{
+    ltgomea_solver.solve();
 }

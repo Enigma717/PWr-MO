@@ -1,5 +1,5 @@
-#include "../include/loader.h"
-#include "../include/model.h"
+#include "loader.hpp"
+#include "model.hpp"
 
 #include <algorithm>
 #include <iostream>

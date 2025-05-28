@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./graph.h"
-#include "./vertex.h"
-#include "./structs/solution.h"
+#include "graph.hpp"
+#include "vertex.hpp"
+#include "structs/solution.hpp"
 
 #include <ostream>
 #include <vector>
@@ -123,6 +123,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Graph& graph)
 inline std::ostream& operator<<(std::ostream& stream, const Solution& solution)
 {
     stream << "Graph: [" << solution.graph << "], fitness: " << solution.fitness;
+    // stream << "fitness: " << solution.fitness;
 
     return stream;
 }

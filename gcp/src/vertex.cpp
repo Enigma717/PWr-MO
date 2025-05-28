@@ -1,5 +1,5 @@
-#include "../include/vertex.h"
-#include "../include/utility_operators.h"
+#include "vertex.hpp"
+#include "utility_operators.hpp"
 
 #include <sstream>
 

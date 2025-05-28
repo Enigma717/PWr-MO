@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graph.h"
+#include "graph.hpp"
 
 struct Solution {
     Solution() = default;

@@ -1,8 +1,8 @@
-#include "../include/solver.h"
-#include "../include/model.h"
-#include "../include/graph.h"
-#include "../include/vertex.h"
-#include "../include/utility_operators.h"
+#include "solver.hpp"
+#include "model.hpp"
+#include "graph.hpp"
+#include "vertex.hpp"
+#include "utility_operators.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -72,7 +72,7 @@ void Solver::simulated_annealing_solution(Graph& graph) const
         neighbour.fitness = model_ref.evaluate_fitness(neighbour.graph);
 
 
-        const int fitness_diff {best_solution.fitness - neighbour.fitness};
+        const auto fitness_diff {static_cast<int>(best_solution.fitness - neighbour.fitness)};
         const double probability {distribution(model_ref.rng)};
         const double exp {std::exp(fitness_diff / current_temperature)};
 

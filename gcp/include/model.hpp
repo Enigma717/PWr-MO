@@ -1,10 +1,11 @@
 #pragma once
 
-#include "structs/model_params.h"
-#include "structs/solution.h"
-#include "genetic_solver.h"
-#include "loader.h"
-#include "solver.h"
+#include "structs/model_params.hpp"
+#include "structs/solution.hpp"
+#include "genetic_solver.hpp"
+#include "ltgomea_solver.hpp"
+#include "loader.hpp"
+#include "solver.hpp"
 
 #include <memory>
 #include <random>
@@ -35,11 +36,12 @@ public:
     void mutate_random_vertex(Graph& graph);
 
     Graph solve_random();
-    Graph solve_random(Graph graph);
+    Graph solve_random(Solution& solution);
     Graph solve_greedy();
-    Graph solve_greedy(Graph graph);
+    Graph solve_greedy(Solution& solution);
     Graph solve_simulated_annealing();
     Solution& solve_genetic(double& avg);
+    void solve_ltgomea();
 
 public:
     ModelParams model_params;
@@ -47,6 +49,7 @@ public:
     std::unique_ptr<Graph> base_graph;
     Solver solver;
     GeneticSolver genetic_solver;
+    LTGOMEASolver ltgomea_solver;
 
     std::random_device rd;
     std::mt19937 rng;
