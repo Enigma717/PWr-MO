@@ -454,7 +454,7 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
     return offsprings;
 }
 
- BuildingBlocks GeneticSolver::normalize_parent_colours(
+BuildingBlocks GeneticSolver::normalize_parent_colours(
     Graph& first_parent_graph,
     Graph& second_parent_graph)
 {
@@ -473,21 +473,21 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
 
         auto first_it(first_parent_colour_occurrences.find(first_parent_colour));
         if (first_it != first_parent_colour_occurrences.end())
-           first_it->second++;
+            first_it->second++;
         else
-           first_parent_colour_occurrences[first_parent_colour] = 1;
+            first_parent_colour_occurrences[first_parent_colour] = 1;
 
         auto second_it(second_parent_colour_occurrences.find(second_parent_colour));
         if (second_it != second_parent_colour_occurrences.end())
-           second_it->second++;
-         else
+            second_it->second++;
+        else
            second_parent_colour_occurrences[second_parent_colour] = 1;
 
         auto pair_it(common_colours_counts.find(colours_pair));
         if (pair_it != common_colours_counts.end())
-           pair_it->second++;
+            pair_it->second++;
         else
-           common_colours_counts[colours_pair] = 1;
+            common_colours_counts[colours_pair] = 1;
     }
 
     for (const auto& elem : common_colours_counts) {
@@ -589,8 +589,8 @@ std::vector<Solution> GeneticSolver::process_partition_crossover(
                     return index == neighbour->get_id();
             })};
 
-            if (it != mismatches.end()) {
-                auto index {it - mismatches.begin()};
+            auto index {it - mismatches.begin()};
+            if (it != mismatches.end() && !mismatches_used.at(index)) {
                 building_block.push_back(*it);
                 mismatches_used.at(index) = true;
             }

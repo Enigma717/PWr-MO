@@ -10,6 +10,10 @@
 Graph::Graph(const Graph& graph)
 {
     const std::size_t graph_size {graph.vertices.size()};
+
+    vertices.clear();
+    colours.clear();
+
     vertices.reserve(graph_size);
     colours.reserve(graph_size);
 
@@ -29,6 +33,10 @@ Graph::Graph(const Graph& graph)
 Graph& Graph::operator=(const Graph& graph)
 {
     const std::size_t graph_size {graph.vertices.size()};
+
+    vertices.clear();
+    colours.clear();
+
     vertices.reserve(graph_size);
     colours.reserve(graph_size);
 

@@ -19,10 +19,10 @@ public:
 
     void solve();
 
-    std::size_t fitness_evaluations {0uz};
-    std::size_t generation_number {0uz};
+    std::size_t total_iterations {0uz};
     std::size_t subpopulations_count {0uz};
-    std::size_t tournament_size {2uz};
+    std::size_t subpopulations_limit {4uz};
+    bool is_optimum_reached {false};
 
 private:
     Model& model_ref;

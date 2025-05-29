@@ -3,67 +3,51 @@
 #include "utility_operators.hpp"
 
 #include <iostream>
-#include <chrono>
-#include <random>
-#include <ranges>
-#include <algorithm>
-#include <cmath>
-#include <iomanip>
-#include <map>
-#include <utility>
 
 namespace
 {
     constexpr std::size_t subpopulation_base_size {2uz};
     constexpr std::size_t ltgomea_base_iterations {4uz};
-    constexpr std::size_t parents_pair_step {2uz};
-    constexpr std::size_t print_info_threshold {100uz};
-    constexpr std::size_t generation_limit {100'000uz};
-    constexpr std::size_t ffe_limit {100'000uz};
+    constexpr std::size_t iterations_limit {20'000uz};
+    constexpr std::size_t ffe_limit {1'000'000uz};
 }
 
 LTGOMEASolver::LTGOMEASolver(Model& model_ref) : model_ref{model_ref} {}
 
 void LTGOMEASolver::solve()
 {
-    // while (fitness_evaluations < 3) {
-        // create_new_subpopulation();
-    // }
+    total_iterations = 0uz;
 
-    for (int i = 0; i < 3; i++) {
+    while (!is_optimum_reached
+        && total_iterations < iterations_limit
+        && Subpopulation::get_ffe() < ffe_limit
+    ) {
         create_new_subpopulation();
-
-        // for (const auto& subpopulation : subpopulations) {
-            // subpopulations.back().print_individuals();
-        // }
 
         generational_step(subpopulations_count - 1);
     }
 
+    Solution* final_solution {subpopulations.at(0).best_solution};
+
     std::cout << "\n\nFinal results:\n";
     for (const auto& subpopulation : subpopulations) {
-        // std::cout << "\n";
-        // subpopulation.print_individuals();
+        if (subpopulation.best_solution->fitness < final_solution->fitness)
+            final_solution = subpopulation.best_solution;
+
         subpopulation.print_info();
     }
+
+    std::cout << "\nFinal solution: [" << final_solution << "] | " << *final_solution;
 
     return;
 }
 
 void LTGOMEASolver::create_new_subpopulation()
 {
-    // std::cout << "\n\nSubpopulation count: " << subpopulations_count << "\n";
-
-    if (subpopulations_count == 0) {
+    if (subpopulations_count == 0)
         subpopulations.emplace_back(subpopulation_base_size, model_ref);
-    }
-    else {
-        const auto last_gomea_size {subpopulations.back().subpopulation_size};
-        // std::cout << "\nLast GOMEA size: " << last_gomea_size;
-        // std::cout << "\nNew GOMEA size: " << (subpopulation_base_size * last_gomea_size) << "\n\n";
-
-        subpopulations.emplace_back(subpopulation_base_size * last_gomea_size, model_ref);
-    }
+    else
+        subpopulations.emplace_back(subpopulation_base_size * subpopulations.back().subpopulation_size, model_ref);
 
     subpopulations_count++;
 }
@@ -73,14 +57,32 @@ void LTGOMEASolver::generational_step(std::size_t current_subpopulation_index)
     auto& current_subpopulation {subpopulations.at(current_subpopulation_index)};
 
     for (std::uint8_t i {0u}; i < ltgomea_base_iterations; i++) {
-        if (!current_subpopulation.locked)
-            current_subpopulation.locked = check_stop_condition(current_subpopulation_index);
+        if (!current_subpopulation.is_locked)
+            current_subpopulation.is_locked = check_stop_condition(current_subpopulation_index);
 
-        if (!current_subpopulation.locked)
+        if (current_subpopulation.iterations_done > 0
+            && current_subpopulation.best_solution->fitness == model_ref.model_params.optimum
+        ) {
+            is_optimum_reached = true;
+
+            return;
+        }
+
+        if (total_iterations > iterations_limit)
+            return;
+
+        if (Subpopulation::get_ffe() > ffe_limit)
+            return;
+
+        if (!current_subpopulation.is_locked) {
             current_subpopulation.run_iteration();
+            total_iterations++;
+        }
 
-        if (!current_subpopulation.locked)
+        if (!current_subpopulation.is_locked) {
             current_subpopulation.print_info();
+            std::cout << "Current FFE: " << Subpopulation::get_ffe() << "\n";
+        }
 
         if (current_subpopulation_index > 0)
             generational_step(current_subpopulation_index - 1);
@@ -89,7 +91,6 @@ void LTGOMEASolver::generational_step(std::size_t current_subpopulation_index)
 
 bool LTGOMEASolver::check_stop_condition(std::size_t current_subpopulation_index)
 {
-    fitness_evaluations++;
     for (std::size_t larger_subpopulations_index = current_subpopulation_index + 1;
         larger_subpopulations_index < subpopulations_count;
         larger_subpopulations_index++
