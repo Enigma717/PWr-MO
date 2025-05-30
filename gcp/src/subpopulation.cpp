@@ -21,7 +21,8 @@ namespace
 std::size_t  Subpopulation::fitness_evaluations {0uz};
 
 Subpopulation::Subpopulation(std::size_t subpopulation_size, Model& model_ref)
-: subpopulation_size {subpopulation_size},
+: lt_builder {model_ref.base_graph->vertices.size()},
+  subpopulation_size {subpopulation_size},
   best_solution {nullptr},
   worst_solution {nullptr},
   model_ref {model_ref}
@@ -40,7 +41,7 @@ std::size_t Subpopulation::get_ffe()
 
 void Subpopulation::print_individuals() const
 {
-    for (std::size_t i {0uz}; i < individuals.size(); i++)
+    for (std::size_t i {0uz}; i < subpopulation_size; i++)
         std::cout << "Subpopulation size: " << subpopulation_size << " | Solution " << i
             << " (" << &individuals.at(i) << "): " << individuals.at(i) << "\n";
 }
@@ -59,6 +60,7 @@ void Subpopulation::run_iteration()
 {
     update_subpopulation_data();
 
+    // lt_builder.calculate_DSM(individuals);
     auto candidates {tournament_selection()};
     process_crossover(candidates);
     subsitute_subpopulation_with_offsprings();
@@ -182,18 +184,15 @@ BuildingBlocks Subpopulation::normalize_parent_colours(
     Graph& first_parent_graph,
     Graph& second_parent_graph)
 {
-    using ColoursMap = std::map<std::size_t, std::size_t>;
-    using ColoursPair = std::pair<std::size_t, std::size_t>;
-
     ColoursMap first_parent_colour_occurrences;
     ColoursMap second_parent_colour_occurrences;
     std::map<ColoursPair, std::size_t> common_colours_counts;
     std::map<ColoursPair, double> common_colours_rates;
 
     for (std::size_t i {0uz}; i < first_parent_graph.vertices.size(); i++) {
-        std::size_t first_parent_colour {*first_parent_graph.colours.at(i)};
-        std::size_t second_parent_colour {*second_parent_graph.colours.at(i)};
-        ColoursPair colours_pair {std::make_tuple(first_parent_colour, second_parent_colour)};
+        const auto first_parent_colour {*first_parent_graph.colours.at(i)};
+        const auto second_parent_colour {*second_parent_graph.colours.at(i)};
+        const auto colours_pair {std::make_tuple(first_parent_colour, second_parent_colour)};
 
         auto first_it(first_parent_colour_occurrences.find(first_parent_colour));
         if (first_it != first_parent_colour_occurrences.end())

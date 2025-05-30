@@ -1,17 +1,23 @@
 #pragma once
 
 #include "structs/solution.hpp"
+#include "linkage_tree_builder.hpp"
 
 #include <vector>
+#include <map>
 
 class Model;
 
 class Subpopulation {
 public:
     using BuildingBlocks = std::vector<std::vector<std::size_t>>;
+    using ColoursMap = std::map<std::size_t, std::size_t>;
+    using ColoursPair = std::pair<std::size_t, std::size_t>;
 
     Subpopulation() = delete;
     Subpopulation(std::size_t subpopulation_size, Model& model_ref);
+
+    LinkageTreeBuilder lt_builder;
 
     std::size_t subpopulation_size {2uz};
     std::size_t iterations_done {0uz};
@@ -19,6 +25,7 @@ public:
 
     std::vector<Solution> individuals;
     std::vector<Solution> improving_offsprings;
+
     Solution* best_solution;
     Solution* worst_solution;
     double avg_fitness {0.0};

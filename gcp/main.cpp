@@ -18,13 +18,13 @@ int main(int argc, char* argv[])
     Model model;
 
     std::vector<std::string> files {
-        "anna",
+        // "anna",
         // "david",
         // "huck",
         // "queen5_5",
         // "queen6_6",
         // "queen7_7",
-        // "queen8_8",
+        "queen8_8",
         // "myciel3",
         // "myciel4",
         // "myciel5",
