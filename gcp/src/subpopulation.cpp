@@ -60,7 +60,8 @@ void Subpopulation::run_iteration()
 {
     update_subpopulation_data();
 
-    // lt_builder.calculate_DSM(individuals);
+    lt_builder.calculate_DSM(individuals);
+    lt_builder.create_clusters();
     auto candidates {tournament_selection()};
     process_crossover(candidates);
     subsitute_subpopulation_with_offsprings();

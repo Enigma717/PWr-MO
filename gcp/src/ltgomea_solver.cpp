@@ -6,10 +6,10 @@
 
 namespace
 {
-    constexpr std::size_t subpopulation_base_size {2uz};
+    constexpr std::size_t subpopulation_base_size {8uz};
     constexpr std::size_t ltgomea_base_iterations {4uz};
     constexpr std::size_t iterations_limit {1'000'000uz};
-    constexpr std::size_t ffe_limit {500'000uz};
+    constexpr std::size_t ffe_limit {10'000uz};
 }
 
 LTGOMEASolver::LTGOMEASolver(Model& model_ref) : model_ref{model_ref} {}
@@ -18,14 +18,14 @@ void LTGOMEASolver::solve()
 {
     total_iterations = 0uz;
 
-    while (!is_optimum_reached
-        && total_iterations < iterations_limit
-        && Subpopulation::get_ffe() < ffe_limit
-    ) {
-        create_new_subpopulation();
+    create_new_subpopulation();
 
+    // while (!is_optimum_reached
+    // while (total_iterations < iterations_limit
+        // && Subpopulation::get_ffe() < ffe_limit
+    // ) {
         generational_step(subpopulations_count - 1);
-    }
+    // }
 
     Solution* final_solution {subpopulations.at(0).best_solution};
 
@@ -60,13 +60,13 @@ void LTGOMEASolver::generational_step(std::size_t current_subpopulation_index)
         if (!current_subpopulation.is_locked)
             current_subpopulation.is_locked = check_stop_condition(current_subpopulation_index);
 
-        if (current_subpopulation.iterations_done > 0
-            && current_subpopulation.best_solution->fitness == model_ref.model_params.optimum
-        ) {
-            is_optimum_reached = true;
+        // if (current_subpopulation.iterations_done > 0
+        //     && current_subpopulation.best_solution->fitness == model_ref.model_params.optimum
+        // ) {
+        //     is_optimum_reached = true;
 
-            return;
-        }
+        //     return;
+        // }
 
         if (total_iterations > iterations_limit)
             return;
@@ -84,8 +84,8 @@ void LTGOMEASolver::generational_step(std::size_t current_subpopulation_index)
             std::cout << "Current FFE: " << Subpopulation::get_ffe() << "\n";
         }
 
-        if (current_subpopulation_index > 0)
-            generational_step(current_subpopulation_index - 1);
+        // if (current_subpopulation_index > 0)
+        //     generational_step(current_subpopulation_index - 1);
     }
 }
 
