@@ -19,7 +19,7 @@ namespace
     }
 }
 
-std::size_t  Subpopulation::fitness_evaluations {0uz};
+std::size_t Subpopulation::fitness_evaluations {0uz};
 
 Subpopulation::Subpopulation(
     std::size_t subpopulation_size, std::uint8_t crossover_code, Model& model_ref)
@@ -65,33 +65,30 @@ void Subpopulation::print_info() const
 
 void Subpopulation::run_iteration()
 {
-    // std::cout << "\nSIEMA ENIU 1";
     update_subpopulation_data();
-    // std::cout << "\nSIEMA ENIU 2";
 
     auto candidates {tournament_selection()};
-    // std::cout << "\nSIEMA ENIU 3";
-    // std::cout << "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> TOURNAMENT CANDIDATES SIZE: " << candidates.size();
-    // std::cout << "\nSIEMA ENIU 4";
 
     if (crossover_type == CrossoverType::partition) {
         process_partition_crossover(candidates);
     }
     else if (crossover_type == CrossoverType::optimal_mixing) {
-        // std::cout << "\nSIEMA ENIU 5";
-        lt_builder.calculate_DSM(individuals);
-        // std::cout << "\nSIEMA ENIU 6";
+        for (std::size_t i {1uz}; i < subpopulation_size; i++)
+            normalize_colours(individuals.at(0).graph, individuals.at(i).graph);
+
+        std::vector<Solution> learn_data;
+        learn_data.reserve(candidates.size());
+
+        for (const auto* candidate : candidates)
+            learn_data.push_back(*candidate);
+
+        lt_builder.calculate_DSM(learn_data);
         lt_builder.create_clusters();
-        // std::cout << "\nSIEMA ENIU 7";
 
         process_optimal_mixing();
-        // std::cout << "\nSIEMA ENIU 8";
     }
-    // std::cout << "\nSIEMA ENIU 9";
 
     subsitute_subpopulation_with_offsprings();
-    // std::cout << "\nSIEMA ENIU 10";
-    // std::cout << "\nSIEMA ENIU 11";
 
     iterations_done++;
 }
@@ -117,11 +114,8 @@ void Subpopulation::subsitute_subpopulation_with_offsprings()
     if (cutoff_point == 0uz)
         return;
 
-    for (std::size_t i {0uz}; i < cutoff_point; i++) {
-        // std::cout << "\nOFFSPRING[" << i << "]: " << offsprings.at(i);
+    for (std::size_t i {0uz}; i < cutoff_point; i++)
         individuals.at(i) = std::move(offsprings.at(i));
-    }
-    std::cout << "\n";
 }
 
 void Subpopulation::update_subpopulation_data()
@@ -147,6 +141,112 @@ void Subpopulation::update_subpopulation_data()
         worst_solution = new_worst_solution;
 
     avg_fitness = new_avg_fitness;
+}
+
+void Subpopulation::normalize_colours(Graph& first_parent_graph, Graph& second_parent_graph)
+{
+    using ColoursMap = std::map<std::size_t, std::size_t>;
+    using ColoursPair = std::pair<std::size_t, std::size_t>;
+
+    ColoursMap first_parent_colour_occurrences;
+    ColoursMap second_parent_colour_occurrences;
+    std::map<ColoursPair, std::size_t> common_colours_counts;
+    std::map<ColoursPair, double> common_colours_rates;
+
+    for (std::size_t i {0uz}; i < first_parent_graph.vertices.size(); i++) {
+        std::size_t first_parent_colour {*first_parent_graph.colours.at(i)};
+        std::size_t second_parent_colour {*second_parent_graph.colours.at(i)};
+        ColoursPair colours_pair {std::make_tuple(first_parent_colour, second_parent_colour)};
+
+        auto first_it(first_parent_colour_occurrences.find(first_parent_colour));
+        if (first_it != first_parent_colour_occurrences.end())
+            first_it->second++;
+        else
+            first_parent_colour_occurrences[first_parent_colour] = 1;
+
+        auto second_it(second_parent_colour_occurrences.find(second_parent_colour));
+        if (second_it != second_parent_colour_occurrences.end())
+            second_it->second++;
+        else
+           second_parent_colour_occurrences[second_parent_colour] = 1;
+
+        auto pair_it(common_colours_counts.find(colours_pair));
+        if (pair_it != common_colours_counts.end())
+            pair_it->second++;
+        else
+            common_colours_counts[colours_pair] = 1;
+    }
+
+    for (const auto& elem : common_colours_counts) {
+        const double rate {
+            static_cast<double>(elem.second) /
+            static_cast<double>(first_parent_colour_occurrences[elem.first.first])};
+        common_colours_rates[elem.first] = rate;
+    }
+
+    std::vector<ColoursPair> colours_order(first_parent_colour_occurrences.size());
+    std::transform(
+        first_parent_colour_occurrences.begin(),
+        first_parent_colour_occurrences.end(),
+        colours_order.begin(),
+        get_second);
+    std::sort(colours_order.begin(), colours_order.end(), std::greater{});
+
+    std::set<std::size_t> free_colours;
+    for (const auto& colours : second_parent_colour_occurrences)
+        free_colours.insert(colours.first);
+
+    std::set<std::size_t> unmatched_colours;
+    for (const auto& colours : first_parent_colour_occurrences)
+        unmatched_colours.insert(colours.first);
+
+
+    std::vector<ColoursPair> colours_to_use;
+    colours_to_use.reserve(first_parent_colour_occurrences.size());
+
+    for (const auto& pair : colours_order) {
+        auto matching_pairs = common_colours_rates | std::views::filter([&](auto& v) {
+            return v.first.first == pair.second && free_colours.contains(v.first.second);
+        });
+
+        if (matching_pairs.empty())
+            continue;
+
+        auto best_match = *std::max_element(
+            matching_pairs.begin(),
+            matching_pairs.end(),
+            [](const auto& p1, const auto& p2) {
+            return p1.second < p2.second;
+        });
+
+        free_colours.erase(best_match.first.second);
+        unmatched_colours.erase(best_match.first.first);
+
+        colours_to_use.push_back(std::make_pair(best_match.first.first, best_match.first.second));
+    }
+
+    if (!free_colours.empty() && !unmatched_colours.empty()) {
+        for (const auto unmatched_colour : unmatched_colours) {
+            auto first_free_colour {*free_colours.begin()};
+            colours_to_use.push_back(std::make_pair(unmatched_colour, first_free_colour));
+            free_colours.erase(first_free_colour);
+        }
+    }
+
+    for (std::size_t i {0uz}; i < second_parent_graph.vertices.size(); i++) {
+        Vertex& second_vertex {second_parent_graph.vertices.at(i)};
+        const std::size_t second_vertex_colour {second_vertex.get_colour()};
+
+        const auto new_colour_pair {std::find_if(
+            colours_to_use.begin(),
+            colours_to_use.end(),
+            [=](const auto& pair) {
+                return second_vertex_colour == pair.second;
+        })};
+
+        if (new_colour_pair != colours_to_use.end())
+            second_vertex.update_colour(new_colour_pair->first);
+    }
 }
 
 std::vector<Solution*> Subpopulation::tournament_selection()
@@ -191,7 +291,9 @@ void Subpopulation::partition_crossover(const std::vector<Solution*>& parents)
 {
     auto& first_parent_graph {parents.at(0)->graph};
     auto& second_parent_graph {parents.at(1)->graph};
-    const auto building_blocks {normalize_parent_colours(first_parent_graph, second_parent_graph)};
+    normalize_colours(first_parent_graph, second_parent_graph);
+
+    const auto building_blocks {obtain_building_blocks(first_parent_graph, second_parent_graph)};
 
     for (const auto& block : building_blocks) {
         Graph new_offspring_graph {second_parent_graph};
@@ -211,111 +313,15 @@ void Subpopulation::partition_crossover(const std::vector<Solution*>& parents)
     }
 }
 
-BuildingBlocks Subpopulation::normalize_parent_colours(
-    Graph& first_parent_graph,
-    Graph& second_parent_graph)
+BuildingBlocks Subpopulation::obtain_building_blocks(
+    const Graph& first_parent_graph,
+    const Graph& second_parent_graph)
 {
-    ColoursMap first_parent_colour_occurrences;
-    ColoursMap second_parent_colour_occurrences;
-    std::map<ColoursPair, std::size_t> common_colours_counts;
-    std::map<ColoursPair, double> common_colours_rates;
-
-    for (std::size_t i {0uz}; i < first_parent_graph.vertices.size(); i++) {
-        const auto first_parent_colour {*first_parent_graph.colours.at(i)};
-        const auto second_parent_colour {*second_parent_graph.colours.at(i)};
-        const auto colours_pair {std::make_tuple(first_parent_colour, second_parent_colour)};
-
-        auto first_it(first_parent_colour_occurrences.find(first_parent_colour));
-        if (first_it != first_parent_colour_occurrences.end())
-            first_it->second++;
-        else
-            first_parent_colour_occurrences[first_parent_colour] = 1;
-
-        auto second_it(second_parent_colour_occurrences.find(second_parent_colour));
-        if (second_it != second_parent_colour_occurrences.end())
-            second_it->second++;
-        else
-            second_parent_colour_occurrences[second_parent_colour] = 1;
-
-        auto pair_it(common_colours_counts.find(colours_pair));
-        if (pair_it != common_colours_counts.end())
-            pair_it->second++;
-        else
-            common_colours_counts[colours_pair] = 1;
-    }
-
-    for (const auto& elem : common_colours_counts) {
-        const double rate {
-            static_cast<double>(elem.second) /
-            static_cast<double>(first_parent_colour_occurrences[elem.first.first])};
-        common_colours_rates[elem.first] = rate;
-    }
-
-    std::vector<ColoursPair> colours_order(first_parent_colour_occurrences.size());
-
-    std::transform(
-        first_parent_colour_occurrences.begin(),
-        first_parent_colour_occurrences.end(),
-        colours_order.begin(),
-        get_second);
-    std::sort(colours_order.begin(), colours_order.end(), std::greater{});
-
-    std::set<std::size_t> free_colours;
-    for (const auto& colours : second_parent_colour_occurrences)
-        free_colours.insert(colours.first);
-
-    std::set<std::size_t> unmatched_colours;
-    for (const auto& colours : first_parent_colour_occurrences)
-        unmatched_colours.insert(colours.first);
-
-    std::vector<ColoursPair> colours_to_use;
-    colours_to_use.reserve(first_parent_colour_occurrences.size());
-
-    for (const auto& pair : colours_order) {
-        auto matching_pairs {common_colours_rates | std::views::filter([&](auto& v) {
-            return v.first.first == pair.second && free_colours.contains(v.first.second);
-        })};
-
-        if (matching_pairs.empty())
-            continue;
-
-        const auto best_match {*std::max_element(
-            matching_pairs.begin(),
-            matching_pairs.end(),
-            [](const auto& p1, const auto& p2) {
-            return p1.second < p2.second;
-        })};
-
-        free_colours.erase(best_match.first.second);
-        unmatched_colours.erase(best_match.first.first);
-
-        colours_to_use.push_back(std::make_pair(best_match.first.first, best_match.first.second));
-    }
-
-    if (!free_colours.empty() && !unmatched_colours.empty()) {
-        for (const auto unmatched_colour : unmatched_colours) {
-            auto first_free_colour {*free_colours.begin()};
-            colours_to_use.push_back(std::make_pair(unmatched_colour, first_free_colour));
-            free_colours.erase(first_free_colour);
-        }
-    }
-
     std::vector<std::size_t> mismatches;
 
     for (std::size_t i {0uz}; i < second_parent_graph.vertices.size(); i++) {
-        Vertex& first_vertex {first_parent_graph.vertices.at(i)};
-        Vertex& second_vertex {second_parent_graph.vertices.at(i)};
-        const std::size_t second_vertex_colour {second_vertex.get_colour()};
-
-        const auto new_colour_pair {std::find_if(
-            colours_to_use.begin(),
-            colours_to_use.end(),
-            [=](const auto& pair) {
-                return second_vertex_colour == pair.second;
-        })};
-
-        if (new_colour_pair != colours_to_use.end())
-            second_vertex.update_colour(new_colour_pair->first);
+        const Vertex& first_vertex {first_parent_graph.vertices.at(i)};
+        const Vertex& second_vertex {second_parent_graph.vertices.at(i)};
 
         if (first_vertex.get_colour() != second_vertex.get_colour())
             mismatches.push_back(i);
@@ -395,7 +401,7 @@ void Subpopulation::process_optimal_mixing()
             // print_individuals();
             // std::cout << "\n[INSIDE]Changed individual colors: [" << current_offspring.graph.colours << "]";
             // std::cout << "\n[INSIDE]Drawn donor colors: [" << donor->graph.colours << "]";
-            while (model_ref.are_two_solutions_same(current_offspring, *donor)) {
+            while (model_ref.check_for_equality_in_cluster(current_offspring, *donor, cluster)) {
                 // std::cout << "\nChanged individual and donor are the same: ";
 
                 if (std::find(donors_tried.begin(), donors_tried.end(), false) == donors_tried.end()) {

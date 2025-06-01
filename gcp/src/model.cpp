@@ -11,6 +11,7 @@ Model::Model()
   solver {*this},
   genetic_solver {*this},
   ltgomea_solver {*this},
+  p3_solver {*this},
   rng {rd()}
 {
 }
@@ -185,6 +186,21 @@ bool Model::are_two_solutions_same(const Solution& sol1, const Solution& sol2)
         });
 }
 
+bool Model::check_for_equality_in_cluster(
+    const Solution& sol1,
+    const Solution& sol2,
+    const std::vector<std::size_t> cluster)
+{
+    const auto& sol1_colours {sol1.graph.colours};
+    const auto& sol2_colours {sol2.graph.colours};
+
+    for (const auto variable : cluster)
+        if (*sol1_colours.at(variable) == *sol2_colours.at(variable))
+            return true;
+
+    return false;
+}
+
 Graph Model::solve_random()
 {
     Graph solution_graph {*base_graph};
@@ -233,4 +249,9 @@ Solution& Model::solve_genetic(double& avg)
 void Model::solve_ltgomea()
 {
     ltgomea_solver.solve();
+}
+
+void Model::solve_p3()
+{
+    p3_solver.solve();
 }

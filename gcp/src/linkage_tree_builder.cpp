@@ -80,17 +80,12 @@ void LinkageTreeBuilder::prepare_DSM()
 
 void LinkageTreeBuilder::calculate_DSM(const std::vector<Solution>& subpopulation)
 {
-    // std::cout << "\nSIEMA ENIU 51";
     prepare_DSM();
 
-    // std::cout << "\nSIEMA ENIU 52";
     const auto subpopulation_size {subpopulation.size()};
-    // std::cout << "\nSIEMA ENIU 53: " << subpopulation_size;
 
     for (auto x {0uz}; x < matrix_size; x++) {
         for (auto y {x}; y < matrix_size; y++) {
-            // std::cout << "\nSIEMA ENIU 54: " << matrix_size;
-
             if (x == y) {
                 DSM[x][y] = -1.0;
                 DSM_entropy[x][y] = -1.0;
@@ -107,17 +102,7 @@ void LinkageTreeBuilder::calculate_DSM(const std::vector<Solution>& subpopulatio
             std::map<ColoursPair, double> colors_pairs_probs;
 
             for (auto i {0uz}; i < subpopulation_size; i++) {
-                // std::cout << "\nSIEMA ENIU 54";
                 const auto& vertices {subpopulation.at(i).graph.vertices};
-                // std::cout << "\nSIEMA ENIU 55 EXTRA: ";
-                // for (const auto& xd : subpopulation) {
-                    // std::cout << "\nINDIVIDUAL IN SUBPOPUL:ATION: " << xd;
-                // }
-                // std::cout << "\nSIEMA ENIU 55: " << i;
-                // std::cout << "\nSIEMA ENIU 56: " << x;
-                // std::cout << "\nSIEMA ENIU 57: " << y;
-                // std::cout << "\nSIEMA ENIU 58: " << vertices;
-                // std::cout << "\nSIEMA ENIU 58: ";
                 const auto first_colour {vertices.at(x).colour};
                 const auto second_colour {vertices.at(y).colour};
                 const auto colours_pair {std::make_tuple(first_colour, second_colour)};

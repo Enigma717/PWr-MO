@@ -4,6 +4,7 @@
 #include "structs/solution.hpp"
 #include "genetic_solver.hpp"
 #include "ltgomea_solver.hpp"
+#include "p3_solver.hpp"
 #include "loader.hpp"
 #include "solver.hpp"
 
@@ -35,6 +36,10 @@ public:
     std::size_t evaluate_fitness(Graph& solution) const;
     void mutate_random_vertex(Graph& graph);
     bool are_two_solutions_same(const Solution& sol1, const Solution& sol2);
+    bool check_for_equality_in_cluster(
+        const Solution& sol1,
+        const Solution& sol2,
+        const std::vector<std::size_t> cluster);
 
     Graph solve_random();
     Graph solve_random(Solution& solution);
@@ -43,6 +48,7 @@ public:
     Graph solve_simulated_annealing();
     Solution& solve_genetic(double& avg);
     void solve_ltgomea();
+    void solve_p3();
 
 public:
     ModelParams model_params;
@@ -51,6 +57,7 @@ public:
     Solver solver;
     GeneticSolver genetic_solver;
     LTGOMEASolver ltgomea_solver;
+    P3Solver p3_solver;
 
     std::random_device rd;
     std::mt19937 rng;

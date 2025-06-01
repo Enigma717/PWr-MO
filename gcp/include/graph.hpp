@@ -15,6 +15,8 @@ public:
     Graph& operator=(Graph&&) = default;
     Graph(const std::size_t);
 
+    bool operator==(const Graph&) const = default;
+
     void add_edge(const std::size_t source_id, const std::size_t destination_id);
     void reset_colouring();
 

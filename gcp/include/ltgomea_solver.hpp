@@ -1,14 +1,9 @@
 #pragma once
 
-#include "enums/crossover_type.hpp"
-#include "enums/population_type.hpp"
 #include "structs/solution.hpp"
 #include "subpopulation.hpp"
-#include "graph.hpp"
 
 #include <vector>
-#include <fstream>
-#include <string>
 
 class Model;
 
@@ -21,7 +16,6 @@ public:
 
     std::size_t total_iterations {0uz};
     std::size_t subpopulations_count {0uz};
-    std::size_t subpopulations_limit {4uz};
     bool is_optimum_reached {false};
     std::uint8_t crossover_type {0u};
 

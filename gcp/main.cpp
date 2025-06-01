@@ -22,9 +22,9 @@ int main(int argc, char* argv[])
         // "david",
         // "huck",
         // "queen5_5",
-        // "queen6_6",
+        "queen6_6",
         // "queen7_7",
-        "queen8_8",
+        // "queen8_8",
         // "myciel3",
         // "myciel4",
         // "myciel5",
@@ -42,10 +42,12 @@ int main(int argc, char* argv[])
             std::cout << "\n\n========[ Instance ]========\n\n";
             std::cout << model.print_model_parms();
 
+            model.p3_solver.crossover_type = crossover_type;
             model.ltgomea_solver.crossover_type = crossover_type;
 
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-            model.solve_ltgomea();
+            model.solve_p3();
+            // model.solve_ltgomea();
             std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
             const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 

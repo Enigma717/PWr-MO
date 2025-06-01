@@ -18,7 +18,6 @@ void LTGOMEASolver::solve()
 {
     total_iterations = 0uz;
 
-
     while (!is_optimum_reached
         && total_iterations < iterations_limit
         && Subpopulation::get_ffe() < ffe_limit

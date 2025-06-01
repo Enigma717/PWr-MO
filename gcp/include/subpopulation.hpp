@@ -40,21 +40,22 @@ public:
     void print_info() const;
     void run_iteration();
 
-private:
-    Model& model_ref;
-
     Solution create_new_solution(Graph&& graph);
     double fitness_evaluation(Solution& solution);
     void subsitute_subpopulation_with_offsprings();
     void update_subpopulation_data();
+    void normalize_colours(Graph& first_parent_graph, Graph& second_parent_graph);
 
     std::vector<Solution*> tournament_selection();
     void process_partition_crossover(const std::vector<Solution*>& candidates);
     void partition_crossover(const std::vector<Solution*>& parents);
-    BuildingBlocks normalize_parent_colours(
-        Graph& first_parent_graph,
-        Graph& second_parent_graph);
+    BuildingBlocks obtain_building_blocks(
+        const Graph& first_parent_graph,
+        const Graph& second_parent_graph);
 
     void process_optimal_mixing();
+
+private:
+    Model& model_ref;
 
 };

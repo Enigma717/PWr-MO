@@ -9,6 +9,8 @@ public:
     Vertex() = delete;
     Vertex(const std::size_t);
 
+    bool operator==(const Vertex&) const = default;
+
     std::string print_neighbours() const;
     std::string print_indirect_neighbours() const;
     std::size_t get_id() const;
