@@ -43,7 +43,7 @@ void LinkageTreeBuilder::print_DSM_dist() const
     for (const auto& row : DSM_dist) {
         std::cout << "\n|";
         for (const auto value : row) {
-            std::cout << "  " << std::setw(13) << std::fixed << std::setprecision(10) << value;
+            std::cout << "  " << std::setw(7) << std::fixed << std::setprecision(4) << value;
         }
         std::cout << "  |";
     }
@@ -80,12 +80,17 @@ void LinkageTreeBuilder::prepare_DSM()
 
 void LinkageTreeBuilder::calculate_DSM(const std::vector<Solution>& subpopulation)
 {
+    // std::cout << "\nSIEMA ENIU 51";
     prepare_DSM();
 
+    // std::cout << "\nSIEMA ENIU 52";
     const auto subpopulation_size {subpopulation.size()};
+    // std::cout << "\nSIEMA ENIU 53: " << subpopulation_size;
 
     for (auto x {0uz}; x < matrix_size; x++) {
         for (auto y {x}; y < matrix_size; y++) {
+            // std::cout << "\nSIEMA ENIU 54: " << matrix_size;
+
             if (x == y) {
                 DSM[x][y] = -1.0;
                 DSM_entropy[x][y] = -1.0;
@@ -102,7 +107,17 @@ void LinkageTreeBuilder::calculate_DSM(const std::vector<Solution>& subpopulatio
             std::map<ColoursPair, double> colors_pairs_probs;
 
             for (auto i {0uz}; i < subpopulation_size; i++) {
+                // std::cout << "\nSIEMA ENIU 54";
                 const auto& vertices {subpopulation.at(i).graph.vertices};
+                // std::cout << "\nSIEMA ENIU 55 EXTRA: ";
+                // for (const auto& xd : subpopulation) {
+                    // std::cout << "\nINDIVIDUAL IN SUBPOPUL:ATION: " << xd;
+                // }
+                // std::cout << "\nSIEMA ENIU 55: " << i;
+                // std::cout << "\nSIEMA ENIU 56: " << x;
+                // std::cout << "\nSIEMA ENIU 57: " << y;
+                // std::cout << "\nSIEMA ENIU 58: " << vertices;
+                // std::cout << "\nSIEMA ENIU 58: ";
                 const auto first_colour {vertices.at(x).colour};
                 const auto second_colour {vertices.at(y).colour};
                 const auto colours_pair {std::make_tuple(first_colour, second_colour)};
@@ -236,25 +251,25 @@ void LinkageTreeBuilder::create_clusters()
         unmerged_clusters.push_back({i});
     }
 
-    std::cout << "\nStarting clusters:\n";
-    for (const auto& cluster : clusters)
-        std::cout << "[" << cluster << "]\n";
+    // std::cout << "\nStarting clusters:\n";
+    // for (const auto& cluster : clusters)
+    //     std::cout << "[" << cluster << "]\n";
 
-    std::cout << "\nUnused clusters:\n";
-    for (const auto& cluster : unmerged_clusters)
-        std::cout << "[" << cluster << "]\n";
+    // std::cout << "\nUnused clusters:\n";
+    // for (const auto& cluster : unmerged_clusters)
+    //     std::cout << "[" << cluster << "]\n";
 
 
-    print_DSM_dist();
+    // print_DSM_dist();
 
     while (unmerged_clusters.size() > 1) {
-        std::cout << "\n========[NOWA ITERACJA]========\n";
+        // std::cout << "\n========[NOWA ITERACJA]========\n";
         double smallest_value {DSM_dist[0][1]};
         std::vector<std::size_t> smallest_value_indexes {0, 1};
         for (std::size_t i {0uz}; i < matrix_size - 1; i++) {
             const auto curr_smallest_value_it {std::min_element(DSM_dist[i].begin() + (i + 1), DSM_dist[i].end())};
 
-            std::cout << "\nCurrent smallest value: " << *curr_smallest_value_it << " | Starting value: " << DSM_dist[i][i+1];
+            // std::cout << "\nCurrent smallest value: " << *curr_smallest_value_it << " | Starting value: " << DSM_dist[i][i+1];
 
             if (*curr_smallest_value_it < smallest_value) {
                 smallest_value = *curr_smallest_value_it;
@@ -268,18 +283,18 @@ void LinkageTreeBuilder::create_clusters()
         const auto first_cluster {unmerged_clusters[first_index]};
         const auto second_cluster {unmerged_clusters[second_index]};
 
-        std::cout << "\nSmallest value: " << smallest_value
-            << " | Its indexes: [" << first_index << ", " << second_index << "]";
+        // std::cout << "\nSmallest value: " << smallest_value
+        //     << " | Its indexes: [" << first_index << ", " << second_index << "]";
 
-        std::cout << "\nChosen clusters: [ ["
-            << first_cluster << "], [" << second_cluster << "] ]\n";
+        // std::cout << "\nChosen clusters: [ ["
+        //     << first_cluster << "], [" << second_cluster << "] ]\n";
 
-        std::cout << "\nTest: [ ";
-        for (auto i {0uz}; i < unmerged_clusters.size(); i++) {
-            const auto& cluster {unmerged_clusters[i]};
-            std::cout << " [" << cluster << "] ";
-        }
-        std::cout << "  ]";
+        // std::cout << "\nTest: [ ";
+        // for (auto i {0uz}; i < unmerged_clusters.size(); i++) {
+        //     const auto& cluster {unmerged_clusters[i]};
+        //     std::cout << " [" << cluster << "] ";
+        // }
+        // std::cout << "  ]";
 
 
         std::vector<std::size_t> new_cluster;
@@ -294,13 +309,13 @@ void LinkageTreeBuilder::create_clusters()
         clusters.push_back(new_cluster);
 
         if (smallest_value <= 1e-7f) {
-            std::cout << "\nSiema eniu";
+            // std::cout << "\nSiema eniu";
             std::erase(clusters, std::vector<std::size_t>{first_cluster.begin(), first_cluster.end()});
             std::erase(clusters, std::vector<std::size_t>{second_cluster.begin(), second_cluster.end()});
         }
 
         add_cluster_to_matrix(first_index, second_index, first_cluster, second_cluster);
-        print_DSM_dist();
+        // print_DSM_dist();
 
         DSM_dist.erase(DSM_dist.begin() + second_index);
         for (auto& row : DSM_dist) {
@@ -312,18 +327,18 @@ void LinkageTreeBuilder::create_clusters()
             row.erase(row.begin() + first_index);
         }
 
-        std::cout << "\n-------[PO USUNIECIU]-------\n";
-        print_DSM_dist();
+        // std::cout << "\n-------[PO USUNIECIU]-------\n";
+        // print_DSM_dist();
 
-        std::cout << "\nUnmerged clusters: [ ";
-        for (const auto& cluster : unmerged_clusters)
-            std::cout << " [" << cluster << "]";
-        std::cout << "  ]";
+        // std::cout << "\nUnmerged clusters: [ ";
+        // for (const auto& cluster : unmerged_clusters)
+        //     std::cout << " [" << cluster << "]";
+        // std::cout << "  ]";
 
-        std::cout << "\nClusters: [ ";
-        for (const auto& cluster : clusters)
-            std::cout << " [" << cluster << "]";
-        std::cout << "  ]\n\n";
+        // std::cout << "\nClusters: [ ";
+        // for (const auto& cluster : clusters)
+        //     std::cout << " [" << cluster << "]";
+        // std::cout << "  ]\n\n";
     }
 
     clusters.pop_back();
@@ -334,10 +349,10 @@ void LinkageTreeBuilder::create_clusters()
             return cluster1.size() < cluster2.size();
         });
 
-    std::cout << "\nFinal clusters: [ ";
-    for (const auto& cluster : clusters)
-        std::cout << " [" << cluster << "]";
-    std::cout << "  ]\n\n";
+    // std::cout << "\nFinal clusters: [ ";
+    // for (const auto& cluster : clusters)
+    //     std::cout << " [" << cluster << "]";
+    // std::cout << "  ]\n\n";
 }
 
 void LinkageTreeBuilder::add_cluster_to_matrix(
@@ -357,7 +372,6 @@ void LinkageTreeBuilder::add_cluster_to_matrix(
         auto& row {DSM_dist[i]};
         const auto first_dist {row[first_index]};
         const auto second_dist {row[second_index]};
-
         const auto new_dist {(first_factor * first_dist) + (second_factor * second_dist)};
 
         row.push_back(new_dist);

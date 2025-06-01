@@ -1,5 +1,6 @@
 #pragma once
 
+#include "enums/crossover_type.hpp"
 #include "structs/solution.hpp"
 #include "linkage_tree_builder.hpp"
 
@@ -15,16 +16,18 @@ public:
     using ColoursPair = std::pair<std::size_t, std::size_t>;
 
     Subpopulation() = delete;
-    Subpopulation(std::size_t subpopulation_size, Model& model_ref);
+    Subpopulation(
+        std::size_t subpopulation_size, std::uint8_t crossover_code, Model& model_ref);
 
     LinkageTreeBuilder lt_builder;
+    CrossoverType crossover_type {CrossoverType::optimal_mixing};
 
     std::size_t subpopulation_size {2uz};
     std::size_t iterations_done {0uz};
     bool is_locked {false};
 
     std::vector<Solution> individuals;
-    std::vector<Solution> improving_offsprings;
+    std::vector<Solution> offsprings;
 
     Solution* best_solution;
     Solution* worst_solution;
@@ -46,9 +49,12 @@ private:
     void update_subpopulation_data();
 
     std::vector<Solution*> tournament_selection();
-    void process_crossover(std::vector<Solution*> candidates);
-    void process_partition_crossover(const std::vector<Solution*>& parents);
+    void process_partition_crossover(const std::vector<Solution*>& candidates);
+    void partition_crossover(const std::vector<Solution*>& parents);
     BuildingBlocks normalize_parent_colours(
         Graph& first_parent_graph,
         Graph& second_parent_graph);
+
+    void process_optimal_mixing();
+
 };

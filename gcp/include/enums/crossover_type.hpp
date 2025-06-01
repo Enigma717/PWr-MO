@@ -3,5 +3,6 @@
 enum class CrossoverType {
     dpoint,
     uniform,
-    partition
+    partition,
+    optimal_mixing
 };

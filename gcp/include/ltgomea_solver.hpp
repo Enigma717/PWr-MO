@@ -23,6 +23,7 @@ public:
     std::size_t subpopulations_count {0uz};
     std::size_t subpopulations_limit {4uz};
     bool is_optimum_reached {false};
+    std::uint8_t crossover_type {0u};
 
 private:
     Model& model_ref;

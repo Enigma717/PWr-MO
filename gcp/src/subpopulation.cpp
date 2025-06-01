@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <ranges>
+#include <algorithm>
 
 namespace
 {
@@ -20,7 +21,8 @@ namespace
 
 std::size_t  Subpopulation::fitness_evaluations {0uz};
 
-Subpopulation::Subpopulation(std::size_t subpopulation_size, Model& model_ref)
+Subpopulation::Subpopulation(
+    std::size_t subpopulation_size, std::uint8_t crossover_code, Model& model_ref)
 : lt_builder {model_ref.base_graph->vertices.size()},
   subpopulation_size {subpopulation_size},
   best_solution {nullptr},
@@ -28,7 +30,12 @@ Subpopulation::Subpopulation(std::size_t subpopulation_size, Model& model_ref)
   model_ref {model_ref}
 {
     individuals.resize(subpopulation_size);
-    improving_offsprings.reserve(subpopulation_size);
+    offsprings.reserve(subpopulation_size);
+
+    if (crossover_code == 0u)
+        crossover_type = CrossoverType::optimal_mixing;
+    else
+        crossover_type = CrossoverType::partition;
 
     for (auto& solution : individuals)
         solution = create_new_solution(model_ref.solve_random());
@@ -58,13 +65,33 @@ void Subpopulation::print_info() const
 
 void Subpopulation::run_iteration()
 {
+    // std::cout << "\nSIEMA ENIU 1";
     update_subpopulation_data();
+    // std::cout << "\nSIEMA ENIU 2";
 
-    lt_builder.calculate_DSM(individuals);
-    lt_builder.create_clusters();
     auto candidates {tournament_selection()};
-    process_crossover(candidates);
+    // std::cout << "\nSIEMA ENIU 3";
+    // std::cout << "\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> TOURNAMENT CANDIDATES SIZE: " << candidates.size();
+    // std::cout << "\nSIEMA ENIU 4";
+
+    if (crossover_type == CrossoverType::partition) {
+        process_partition_crossover(candidates);
+    }
+    else if (crossover_type == CrossoverType::optimal_mixing) {
+        // std::cout << "\nSIEMA ENIU 5";
+        lt_builder.calculate_DSM(individuals);
+        // std::cout << "\nSIEMA ENIU 6";
+        lt_builder.create_clusters();
+        // std::cout << "\nSIEMA ENIU 7";
+
+        process_optimal_mixing();
+        // std::cout << "\nSIEMA ENIU 8";
+    }
+    // std::cout << "\nSIEMA ENIU 9";
+
     subsitute_subpopulation_with_offsprings();
+    // std::cout << "\nSIEMA ENIU 10";
+    // std::cout << "\nSIEMA ENIU 11";
 
     iterations_done++;
 }
@@ -85,13 +112,16 @@ double Subpopulation::fitness_evaluation(Solution& solution)
 
 void Subpopulation::subsitute_subpopulation_with_offsprings()
 {
-    const auto cutoff_point {std::min(improving_offsprings.size(), subpopulation_size)};
+    const auto cutoff_point {std::min(offsprings.size(), subpopulation_size)};
 
     if (cutoff_point == 0uz)
         return;
 
-    for (std::size_t i {0uz}; i < cutoff_point; i++)
-        individuals.at(i) = std::move(improving_offsprings.at(i));
+    for (std::size_t i {0uz}; i < cutoff_point; i++) {
+        // std::cout << "\nOFFSPRING[" << i << "]: " << offsprings.at(i);
+        individuals.at(i) = std::move(offsprings.at(i));
+    }
+    std::cout << "\n";
 }
 
 void Subpopulation::update_subpopulation_data()
@@ -144,20 +174,20 @@ std::vector<Solution*> Subpopulation::tournament_selection()
     return final_winners;
 }
 
-void Subpopulation::process_crossover(std::vector<Solution*> candidates)
+void Subpopulation::process_partition_crossover(const std::vector<Solution*>& candidates)
 {
-    improving_offsprings.clear();
+    offsprings.clear();
 
     for (std::size_t i {0uz}; i < candidates.size(); i += candidates_pair_step) {
         Solution* first_parent {candidates.at(i)};
         Solution* second_parent {candidates.at(i + 1)};
 
         if (first_parent != second_parent)
-            process_partition_crossover({first_parent, second_parent});
+            partition_crossover({first_parent, second_parent});
     }
 }
 
-void Subpopulation::process_partition_crossover(const std::vector<Solution*>& parents)
+void Subpopulation::partition_crossover(const std::vector<Solution*>& parents)
 {
     auto& first_parent_graph {parents.at(0)->graph};
     auto& second_parent_graph {parents.at(1)->graph};
@@ -177,7 +207,7 @@ void Subpopulation::process_partition_crossover(const std::vector<Solution*>& pa
             && offspring.fitness <= parents[1]->fitness
             && offspring.fitness <= best_solution->fitness
         )
-            improving_offsprings.push_back(std::move(offspring));
+            offsprings.push_back(std::move(offspring));
     }
 }
 
@@ -324,4 +354,133 @@ BuildingBlocks Subpopulation::normalize_parent_colours(
     }
 
     return building_blocks;
+}
+
+void Subpopulation::process_optimal_mixing()
+{
+    if (lt_builder.clusters.size() == 0)
+        return;
+
+    offsprings.clear();
+    offsprings.resize(subpopulation_size);
+
+    for (std::size_t i {0}; i < subpopulation_size; i++) {
+        // std::cout << "\n========[NOWA ITERACJA]========\n";
+
+        std::uniform_int_distribution<std::size_t> int_distribution(0, subpopulation_size - 1);
+        const auto generated_index {int_distribution(model_ref.rng)};
+
+        // std::cout << "\nGenerated index: " << generated_index;
+        offsprings.at(i) = individuals.at(i);
+        auto& current_offspring {offsprings.at(i)};
+        Solution backup = current_offspring;
+        bool skip_cluster {false};
+
+        // std::cout << "\nGOM clusters: [\n";
+        for (const auto& cluster : lt_builder.clusters) {
+            skip_cluster = false;
+            // std::cout << "\n[" << cluster << "]\n";
+
+            auto* donor {&individuals.at(generated_index)};
+
+            std::vector<bool> donors_tried(subpopulation_size);
+            donors_tried.at(i) = true;
+            donors_tried.at(generated_index) = true;
+
+            // std::cout << "\n[BEFORE] Donors_tried: [";
+            // for (const auto xd : donors_tried)
+                // std::cout << " " << xd;
+            // std::cout << "]\n";
+
+            // print_individuals();
+            // std::cout << "\n[INSIDE]Changed individual colors: [" << current_offspring.graph.colours << "]";
+            // std::cout << "\n[INSIDE]Drawn donor colors: [" << donor->graph.colours << "]";
+            while (model_ref.are_two_solutions_same(current_offspring, *donor)) {
+                // std::cout << "\nChanged individual and donor are the same: ";
+
+                if (std::find(donors_tried.begin(), donors_tried.end(), false) == donors_tried.end()) {
+                    std::cout << "\nNo more unique donors for this individual";
+                    skip_cluster = true;
+                    break;
+                }
+                // std::cout << "\n[INSIDE]Changed individual: [" << &current_offspring << "]: " << current_offspring;
+                // std::cout << "\n[INSIDE]Drawn donor: [" << donor << "]: " << *donor;
+
+                const auto new_index {int_distribution(model_ref.rng)};
+                donors_tried.at(new_index) = true;
+                // std::cout << "\nNew index: " << new_index;
+                // std::cout << "\nIndividuals size: " << individuals.size();
+                donor = &individuals.at(new_index);
+                // std::cout << "\n[NEW]Changed individual: [" << &changed << "]: " << changed;
+                // std::cout << "\n[NEW]Drawn donor: [" << donor << "]: " << *donor;
+
+                // std::cout << "\n[AFTER] Donors_tried: [";
+                // for (const auto xd : donors_tried)
+                //     std::cout << " " << xd;
+                // std::cout << "]\n";
+            }
+
+            if (skip_cluster)
+                continue;
+
+            // std::cout << "\nChanged individual: [" << &changed << "]: " << changed;
+            // std::cout << "\nBackup: [" << &backup << "]: " << backup;
+            // std::cout << "\nDrawn donor: [" << donor << "]: " << *donor;
+
+            // std::cout << "\nColors from ind and donor for given cluster: ";
+            // std::cout << "\nChanged: [ ";
+            // for (const auto value : cluster) {
+            //     std::cout << " " << *changed.graph.colours.at(value) << ",";
+            // }
+            // std::cout << " ]";
+
+            // std::cout << "\nBackup: [ ";
+            // for (const auto value : cluster) {
+            //     std::cout << " " << *backup.graph.colours.at(value) << ",";
+            // }
+            // std::cout << " ]";
+
+            // std::cout << "\nDonor: [ ";;
+            // for (const auto value : cluster) {
+            //     std::cout << " " << *donor->graph.colours.at(value) << ",";
+            // }
+            // std::cout << " ]";
+
+
+            // std::cout << "\n[BEFORE] Donor: [" << donor << "]: " << *donor;
+            // std::cout << "\n[BEFORE] Offpsring: [" << &current_offspring << "]: " << current_offspring;
+            // std::cout << "\n[BEFORE] Backup: [" << &backup << "]: " << backup;
+
+            // std::cout << "\nTrying to donate";
+            for (const auto value : cluster) {
+                current_offspring.graph.vertices.at(value).colour = donor->graph.vertices.at(value).colour;
+            }
+
+            current_offspring.fitness = fitness_evaluation(current_offspring);
+
+            // std::cout << "\n[MEANWHILE] Donor: [" << donor << "]: " << *donor;
+            // std::cout << "\n[MEANWHILE] Offspring: [" << &current_offspring << "]: " << current_offspring;
+            // std::cout << "\n[MEANWHILE] Backup: [" << &backup << "]: " << backup;
+
+            if (current_offspring.fitness > backup.fitness) {
+                // std::cout << "\nWOW! Dubstep remix!\n";
+                current_offspring = backup;
+            }
+            else {
+                backup = current_offspring;
+            }
+
+            // std::cout << "\n[AFTER] Donor: [" << donor << "]: " << *donor;
+            // std::cout << "\n[AFTER] Offspring: [" << &current_offspring << "]: " << current_offspring;
+            // std::cout << "\n[AFTER] Backup: [" << &backup << "]: " << backup;
+        }
+        // std::cout << "\n]\n\n";
+
+    }
+
+    // std::cout << "\nOffsprings at the end:";
+    // for (const auto& offspring : offsprings) {
+        // std::cout << "\nOffspring [ " << &offspring << "]: " << offspring;
+    // }
+    // std::cout << "\n";
 }

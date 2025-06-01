@@ -34,6 +34,7 @@ public:
     Graph& fix_colouring(Graph& solution) const;
     std::size_t evaluate_fitness(Graph& solution) const;
     void mutate_random_vertex(Graph& graph);
+    bool are_two_solutions_same(const Solution& sol1, const Solution& sol2);
 
     Graph solve_random();
     Graph solve_random(Solution& solution);

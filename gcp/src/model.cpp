@@ -172,6 +172,19 @@ void Model::mutate_random_vertex(Graph& graph)
     graph.vertices.at(random_vertex).update_colour(random_colour);
 }
 
+bool Model::are_two_solutions_same(const Solution& sol1, const Solution& sol2)
+{
+    const auto& sol1_colours {sol1.graph.colours};
+    const auto& sol2_colours {sol2.graph.colours};
+
+    return std::equal(
+        sol1_colours.begin(), sol1_colours.end(),
+        sol2_colours.begin(), sol2_colours.end(),
+        [](const std::size_t* col1, const std::size_t* col2){
+            return *col1 == *col2;
+        });
+}
+
 Graph Model::solve_random()
 {
     Graph solution_graph {*base_graph};

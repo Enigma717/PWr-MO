@@ -347,6 +347,8 @@ std::vector<Solution> GeneticSolver::process_crossover(
             return process_uniform_crossover(first_parent_graph, second_parent_graph);
         case CrossoverType::partition:
             return process_partition_crossover(first_parent_graph, second_parent_graph);
+        default:
+            return {};
     }
 
     return {};

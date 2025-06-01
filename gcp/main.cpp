@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    std::size_t subpopulations_limit {static_cast<std::size_t>(std::stoi(argv[1]))};
+    std::size_t crossover_type {static_cast<std::size_t>(std::stoi(argv[1]))};
 
     Model model;
 
@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
         // "queen5_5",
         // "queen6_6",
         // "queen7_7",
-        // "queen8_8",
-        "myciel3",
+        "queen8_8",
+        // "myciel3",
         // "myciel4",
         // "myciel5",
         // "myciel6",
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
             std::cout << "\n\n========[ Instance ]========\n\n";
             std::cout << model.print_model_parms();
 
-            model.ltgomea_solver.subpopulations_limit = subpopulations_limit;
+            model.ltgomea_solver.crossover_type = crossover_type;
 
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             model.solve_ltgomea();
