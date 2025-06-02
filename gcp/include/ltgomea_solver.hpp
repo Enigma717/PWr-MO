@@ -17,7 +17,7 @@ public:
     std::size_t total_iterations {0uz};
     std::size_t subpopulations_count {0uz};
     bool is_optimum_reached {false};
-    std::uint8_t crossover_type {0u};
+    std::uint8_t crossover_code {0u};
 
 private:
     Model& model_ref;

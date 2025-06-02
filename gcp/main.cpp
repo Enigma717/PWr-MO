@@ -42,8 +42,11 @@ int main(int argc, char* argv[])
             std::cout << "\n\n========[ Instance ]========\n\n";
             std::cout << model.print_model_parms();
 
-            model.p3_solver.crossover_type = crossover_type;
-            model.ltgomea_solver.crossover_type = crossover_type;
+            if (crossover_type == 0)
+                model.p3_solver.crossover_type = CrossoverType::optimal_mixing;
+            else if (crossover_type == 1)
+                model.p3_solver.crossover_type = CrossoverType::partition;
+            model.ltgomea_solver.crossover_code = crossover_type;
 
             std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
             model.solve_p3();

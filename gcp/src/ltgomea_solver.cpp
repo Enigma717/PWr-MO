@@ -37,7 +37,7 @@ void LTGOMEASolver::solve()
     }
 
     std::cout << "\nFinal solution: [" << final_solution << "] | " << *final_solution;
-    std::cout << "\nUsed crossover type: [" << (crossover_type == 0u ? "optimal_mixing]\n" : "partition_crossover]\n");
+    std::cout << "\nUsed crossover type: [" << (crossover_code == 0u ? "optimal_mixing]\n" : "partition_crossover]\n");
 
     return;
 }
@@ -46,11 +46,11 @@ void LTGOMEASolver::create_new_subpopulation()
 {
     if (subpopulations_count == 0)
         subpopulations.emplace_back(
-            subpopulation_base_size, crossover_type, model_ref);
+            subpopulation_base_size, crossover_code, model_ref);
     else
         subpopulations.emplace_back(
             subpopulation_base_size * subpopulations.back().subpopulation_size,
-            crossover_type,
+            crossover_code,
             model_ref);
 
     subpopulations_count++;

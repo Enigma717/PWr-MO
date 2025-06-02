@@ -250,27 +250,6 @@ std::vector<Solution> GeneticSolver::tournament_selection()
     return final_winners;
 }
 
-// std::vector<Solution> GeneticSolver::tournament_selection()
-// {
-//     const std::size_t subgroups_count {std::max(1uz, population.size() / tournament_size)};
-//     const int winners_count {static_cast<int>(tournament_size - expected_winners)};
-//     const auto drop_point {std::max(0, winners_count)};
-//     std::vector<Solution> final_winners;
-
-//     final_winners.reserve(subgroups_count * expected_winners);
-
-//     for (const auto& subgroup : population | std::views::chunk(tournament_size)) {
-//         std::sort(subgroup.begin(), subgroup.end(), std::greater{});
-
-//         const auto& winners {std::views::drop(subgroup, drop_point)};
-
-//         for (const Solution& winner : winners)
-//             final_winners.push_back(winner);
-//     }
-
-//     return final_winners;
-// }
-
 std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& parents)
 {
     std::uniform_real_distribution<double> real_distribution(0.0, 1.0);
@@ -303,39 +282,6 @@ std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution>& pa
 
     return offsprings;
 }
-
-// std::vector<Solution> GeneticSolver::crossover_parents(std::vector<Solution*>& parents)
-// {
-//     std::uniform_real_distribution<double> real_distribution(0.0, 1.0);
-//     std::uniform_int_distribution<std::size_t> int_distribution(0, parents.size() - 1);
-
-//     std::vector<Solution> offsprings;
-//     offsprings.reserve(parents.size());
-
-//     for (std::size_t i {0uz}; i < (parents.size() / 2uz); i ++) {
-//         const double probability {real_distribution(model_ref.rng)};
-//         const auto first_parent_index {int_distribution(model_ref.rng)};
-//         const auto second_parent_index {int_distribution(model_ref.rng)};
-
-//         Solution* first_parent {parents.at(first_parent_index)};
-//         Solution* second_parent {parents.at(second_parent_index)};
-//         Graph& first_parent_graph {first_parent->graph};
-//         Graph& second_parent_graph {second_parent->graph};
-
-//         if (probability < crossing_probability) {
-//             const auto new_offsprings {process_crossover(first_parent_graph, second_parent_graph)};
-
-//             for (const auto& offspring : new_offsprings)
-//                 offsprings.push_back(offspring);
-//         }
-//         else {
-//             offsprings.push_back(*first_parent);
-//             offsprings.push_back(*second_parent);
-//         }
-//     }
-
-//     return offsprings;
-// }
 
 std::vector<Solution> GeneticSolver::process_crossover(
     Graph& first_parent_graph, Graph& second_parent_graph)

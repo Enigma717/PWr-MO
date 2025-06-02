@@ -69,10 +69,7 @@ void Subpopulation::run_iteration()
 
     auto candidates {tournament_selection()};
 
-    if (crossover_type == CrossoverType::partition) {
-        process_partition_crossover(candidates);
-    }
-    else if (crossover_type == CrossoverType::optimal_mixing) {
+    if (crossover_type == CrossoverType::optimal_mixing) {
         for (std::size_t i {1uz}; i < subpopulation_size; i++)
             normalize_colours(individuals.at(0).graph, individuals.at(i).graph);
 
@@ -86,6 +83,9 @@ void Subpopulation::run_iteration()
         lt_builder.create_clusters();
 
         process_optimal_mixing();
+    }
+    else if (crossover_type == CrossoverType::partition) {
+        process_partition_crossover(candidates);
     }
 
     subsitute_subpopulation_with_offsprings();

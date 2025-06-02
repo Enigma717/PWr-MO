@@ -20,7 +20,9 @@ public:
     std::size_t total_iterations {0uz};
     std::size_t pyramid_levels {0uz};
     bool is_optimum_reached {false};
-    std::uint8_t crossover_type {0u};
+
+    std::uint8_t crossover_code {0u};
+    CrossoverType crossover_type {CrossoverType::optimal_mixing};
 
 private:
     Model& model_ref;
@@ -28,15 +30,22 @@ private:
     std::vector<LinkageTreeBuilder> linkage_trees;
     std::unordered_map<std::size_t, std::size_t> known_solutions;
 
-    Solution* best_solution;
+    Solution best_solution;
 
     void create_new_level();
-    void next_iteration();
 
     Solution create_new_solution(Graph&& graph);
-    void add_solution_to_level(const Solution& solution, const std::size_t level);
+    void add_solution_to_level(Solution& solution, const std::size_t level);
     double fitness_evaluation(Solution& solution);
-    void normalize_colours(Graph& first_parent_graph, Graph& second_parent_graph);
+    void normalize_colours(Graph& first_graph, Graph& second_graph);
+    void apply_hill_climber(Solution& solution);
 
+    void next_om_iteration();
     void process_optimal_mixing(Solution& solution, std::size_t current_level);
+
+    void next_px_iteration();
+    Solution process_partition_crossover(Solution& solution, Solution& partner);
+    BuildingBlocks obtain_building_blocks(
+        const Graph& solution_graph,
+        const Graph& partner_graph);
 };
