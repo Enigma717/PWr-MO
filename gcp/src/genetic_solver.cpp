@@ -102,14 +102,14 @@ void GeneticSolver::evaluate_population(std::ofstream& csv_file)
     }
 }
 
-double GeneticSolver::variance()
+double GeneticSolver::deviation()
 {
     double sum {0.0};
 
     for (const auto& solution : population)
         sum += std::pow((solution.fitness - avg_fitness), 2);
 
-    return sqrt(sum / (population_size - 1));
+    return sqrt(sum / population_size);
 }
 
 Solution& GeneticSolver::solve(double& avg)
@@ -167,7 +167,7 @@ Solution& GeneticSolver::solve(double& avg)
         << best_solution->fitness << "; "
         << worst_solution->fitness << "; "
         << avg_fitness << "; "
-        << variance() << "; "
+        << deviation() << "; "
         << tournament_size << "; "
         << crossing_probability << "; "
         << mutation_probability << "; "

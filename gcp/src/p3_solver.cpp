@@ -3,6 +3,7 @@
 #include "utility_operators.hpp"
 
 #include <iostream>
+#include <chrono>
 #include <random>
 #include <ranges>
 #include <algorithm>
@@ -25,25 +26,48 @@ namespace
     }
 }
 
-P3Solver::P3Solver(Model& model_ref) : model_ref{model_ref}
-{
-    if (crossover_code == 0)
-        crossover_type = CrossoverType::optimal_mixing;
-    else if (crossover_code == 1)
-        crossover_type = CrossoverType::partition;
-}
+P3Solver::P3Solver(Model& model_ref) : model_ref{model_ref} {}
 
 void P3Solver::print_info() const
 {
-    std::cout << "Pyramid levels: [" << pyramid_levels << "]"
+    std::cout << "Pyramid levels: " << pyramid_levels
         << " | Best solution fitness: " << best_solution.fitness
-        << " | Iterations done: " << total_iterations
-        << " | Fitness evaluations: " << fitness_evaluations << "\n";
+        << " | Average fitness: " << avg_fitness
+        << " | Deviation: " << avg_deviation
+        << " | Iterations: " << total_iterations
+        << " | FFE: " << fitness_evaluations << "\n";
 }
 
 void P3Solver::solve()
 {
+    std::string dir_type {crossover_type == CrossoverType::optimal_mixing ? "p3" : "p3px"};
+
+    std::ofstream results_file;
+    std::stringstream results_path;
+    results_path << "./csv/results/" + dir_type + "/results_" << model_ref.model_params.instance_name << ".csv";
+    results_file.open(results_path.str(), std::ios_base::app);
+
+    if(!results_file.is_open()) {
+        perror("Error opening results file");
+        exit(EXIT_FAILURE);
+    }
+
+    std::ofstream plot_file;
+    std::stringstream plot_data_path;
+    plot_data_path << "./csv/results/" + dir_type + "/plot_" << model_ref.model_params.instance_name << ".csv";
+    plot_file.open(plot_data_path.str(), std::ios_base::app);
+
+    if(!plot_file.is_open()) {
+        perror("Error opening plot file");
+        exit(EXIT_FAILURE);
+    }
+
+    results_file << "levels; best; avg; dev; iterations; ffe; time\n";
+    plot_file << "iteration; levels; best; avg; dev\n";
+
     total_iterations = 0uz;
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     create_new_level();
 
@@ -51,33 +75,38 @@ void P3Solver::solve()
         && total_iterations < iterations_limit
         && fitness_evaluations < ffe_limit
     ) {
-    // for (size_t i {0uz}; i < 100; i++) {
         if (crossover_type == CrossoverType::optimal_mixing)
-            next_om_iteration();
+            next_om_iteration(plot_file);
         else if (crossover_type == CrossoverType::partition)
-            next_px_iteration();
+            next_px_iteration(plot_file);
 
+        calculate_solver_info();
         print_info();
     }
-    // }
 
-    std::cout << "\n\nFinal map (" << known_solutions.size() << "):";
-    for (const auto& solution : known_solutions) {
-        std::cout << "\nSolution [" << solution.first << "]: " << solution.second;
-    }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 
-    std::cout << "\n\nFinal pyramid (" << pyramid.size() << "):";
-    for (std::size_t level {0uz}; level < pyramid_levels; level++) {
-        const auto& pyramid_level {pyramid.at(level)};
-        std::cout << "\nLevel number: " << level << " | Level size: " << pyramid_level.size();
+    results_file << pyramid_levels << "; "
+        << best_solution.fitness << "; "
+        << avg_fitness << "; "
+        << avg_deviation << "; "
+        << total_iterations << "; "
+        << fitness_evaluations << "; "
+        << elapsed_time << "\n";
 
-        for (const auto& solution : pyramid_level)
-            std::cout << "\nSolution [" << &solution << "]: " << solution.fitness;
-    }
+    plot_file << total_iterations << "; "
+        << pyramid_levels << "; "
+        << best_solution.fitness << "; "
+        << avg_fitness << "; "
+        << avg_deviation << "\n";
+
+    plot_file.close();
+    results_file.close();
 
     std::cout << "\n\nFinal solution: [" << &best_solution << "] | " << best_solution;
     std::cout << "\nIterations: " << total_iterations << " | fitness evaluations: " << fitness_evaluations;
-    std::cout << "\nUsed crossover type: [" << (crossover_code == 0u ? "optimal_mixing]\n" : "partition_crossover]\n");
+    std::cout << "\nUsed crossover type: [" << (crossover_type == CrossoverType::optimal_mixing ? "optimal_mixing]\n" : "partition_crossover]\n");
 
     return;
 }
@@ -87,6 +116,43 @@ void P3Solver::create_new_level()
     pyramid.push_back({});
     linkage_trees.push_back({model_ref.base_graph->vertices.size()});
     pyramid_levels++;
+}
+
+void P3Solver::calculate_solver_info()
+{
+    avg_fitness = 0.0;
+
+    for (const auto& level : pyramid) {
+        double level_avg_fitness {
+            static_cast<double>(std::accumulate(level.begin(), level.end(), 0.0)) /
+            static_cast<double>(level.size())};
+
+        avg_fitness += level_avg_fitness;
+
+        double sum {0.0};
+
+        for (const auto& solution : level)
+            sum += std::pow((solution.fitness - level_avg_fitness), 2);
+
+        avg_deviation += sqrt(sum / level.size());
+    }
+
+    avg_fitness /= pyramid_levels;
+    avg_deviation /= pyramid_levels;
+}
+
+Solution P3Solver::create_new_solution(Graph&& graph)
+{
+    Solution solution(std::move(graph));
+    solution.fitness = fitness_evaluation(solution);
+
+    return solution;
+}
+
+double P3Solver::fitness_evaluation(Solution& solution)
+{
+    fitness_evaluations++;
+    return model_ref.evaluate_fitness(solution.graph);
 }
 
 void P3Solver::add_solution_to_level(Solution& solution, const std::size_t level)
@@ -106,20 +172,6 @@ void P3Solver::add_solution_to_level(Solution& solution, const std::size_t level
     current_level.push_back(solution);
     current_linkage_tree.calculate_DSM(current_level);
     current_linkage_tree.create_clusters();
-}
-
-Solution P3Solver::create_new_solution(Graph&& graph)
-{
-    Solution solution(std::move(graph));
-    solution.fitness = fitness_evaluation(solution);
-
-    return solution;
-}
-
-double P3Solver::fitness_evaluation(Solution& solution)
-{
-    fitness_evaluations++;
-    return model_ref.evaluate_fitness(solution.graph);
 }
 
 void P3Solver::normalize_colours(Graph& first_graph, Graph& second_graph)
@@ -265,7 +317,7 @@ void P3Solver::apply_hill_climber(Solution& solution)
     } while (fitness_improved);
 }
 
-void P3Solver::next_om_iteration()
+void P3Solver::next_om_iteration(std::ofstream& plot_file)
 {
     Solution new_solution(create_new_solution(model_ref.solve_random()));
     apply_hill_climber(new_solution);
@@ -300,6 +352,12 @@ void P3Solver::next_om_iteration()
             add_solution_to_level(new_solution, current_level + 1);
         }
     }
+
+    plot_file << total_iterations << "; "
+        << pyramid_levels << "; "
+        << best_solution.fitness << "; "
+        << avg_fitness << "; "
+        << avg_deviation << "\n";
 
     total_iterations++;
 }
@@ -351,7 +409,7 @@ void P3Solver::process_optimal_mixing(Solution& solution, std::size_t current_le
     }
 }
 
-void P3Solver::next_px_iteration()
+void P3Solver::next_px_iteration(std::ofstream& plot_file)
 {
     Solution new_solution(create_new_solution(model_ref.solve_random()));
     apply_hill_climber(new_solution);
@@ -369,6 +427,12 @@ void P3Solver::next_px_iteration()
                 known_solutions.insert({solution_hash, new_solution.fitness});
                 add_solution_to_level(new_solution, current_level);
             }
+
+            plot_file << total_iterations << "; "
+                << pyramid_levels << "; "
+                << best_solution.fitness << "; "
+                << avg_fitness << "; "
+                << avg_deviation << "\n";
 
             total_iterations++;
 
@@ -396,6 +460,12 @@ void P3Solver::next_px_iteration()
             add_solution_to_level(new_solution, current_level + 1);
         }
     }
+
+    plot_file << total_iterations << "; "
+        << pyramid_levels << "; "
+        << best_solution.fitness << "; "
+        << avg_fitness << "; "
+        << avg_deviation << "\n";
 
     total_iterations++;
 }

@@ -31,19 +31,22 @@ private:
     std::unordered_map<std::size_t, std::size_t> known_solutions;
 
     Solution best_solution;
+    double avg_fitness {0.0};
+    double avg_deviation {0.0};
 
     void create_new_level();
 
+    void calculate_solver_info();
     Solution create_new_solution(Graph&& graph);
     void add_solution_to_level(Solution& solution, const std::size_t level);
     double fitness_evaluation(Solution& solution);
     void normalize_colours(Graph& first_graph, Graph& second_graph);
     void apply_hill_climber(Solution& solution);
 
-    void next_om_iteration();
+    void next_om_iteration(std::ofstream& plot_file);
     void process_optimal_mixing(Solution& solution, std::size_t current_level);
 
-    void next_px_iteration();
+    void next_px_iteration(std::ofstream& plot_file);
     Solution process_partition_crossover(Solution& solution, Solution& partner);
     BuildingBlocks obtain_building_blocks(
         const Graph& solution_graph,

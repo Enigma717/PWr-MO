@@ -18,7 +18,7 @@ public:
     GeneticSolver() = delete;
     GeneticSolver(Model& model_ref);
 
-    double variance();
+    double deviation();
     void initialize_population(PopulationType population_type, std::size_t size);
     void evaluate_population(std::ofstream& csv_file);
     Solution& solve(double& avg);

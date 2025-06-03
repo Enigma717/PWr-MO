@@ -22,8 +22,9 @@ namespace
 std::size_t Subpopulation::fitness_evaluations {0uz};
 
 Subpopulation::Subpopulation(
-    std::size_t subpopulation_size, std::uint8_t crossover_code, Model& model_ref)
+    std::size_t subpopulation_size, CrossoverType crossover_type, Model& model_ref)
 : lt_builder {model_ref.base_graph->vertices.size()},
+  crossover_type {crossover_type},
   subpopulation_size {subpopulation_size},
   best_solution {nullptr},
   worst_solution {nullptr},
@@ -31,11 +32,6 @@ Subpopulation::Subpopulation(
 {
     individuals.resize(subpopulation_size);
     offsprings.reserve(subpopulation_size);
-
-    if (crossover_code == 0u)
-        crossover_type = CrossoverType::optimal_mixing;
-    else
-        crossover_type = CrossoverType::partition;
 
     for (auto& solution : individuals)
         solution = create_new_solution(model_ref.solve_random());
@@ -57,10 +53,12 @@ void Subpopulation::print_info() const
 {
     std::cout << "Subpopulation size: [" << subpopulation_size << "]"
         << " | Is locked: [" << is_locked << "]"
-        << " | Best solution: [" << best_solution << "], fitness: " << best_solution->fitness
-        << " | Worst solution: [" << worst_solution << "], fitness: " << worst_solution->fitness
+        << " | Best solution fitness: " << best_solution->fitness
+        << " | Worst solution fitness: " << worst_solution->fitness
         << " | Average fitness: " << avg_fitness
-        << " | Iterations done: " << iterations_done << "\n";
+        << " | Deviation: " << deviation
+        << " | Iterations: " << iterations_done
+        << " | FFE: " << get_ffe() << "\n";
 }
 
 void Subpopulation::run_iteration()
@@ -118,6 +116,16 @@ void Subpopulation::subsitute_subpopulation_with_offsprings()
         individuals.at(i) = std::move(offsprings.at(i));
 }
 
+double Subpopulation::calculate_deviation()
+{
+    double sum {0.0};
+
+    for (const auto& solution : individuals)
+        sum += std::pow((solution.fitness - avg_fitness), 2);
+
+    return sqrt(sum / (subpopulation_size - 1));
+}
+
 void Subpopulation::update_subpopulation_data()
 {
     auto new_best_solution {&*std::min_element(individuals.begin(), individuals.end())};
@@ -141,6 +149,7 @@ void Subpopulation::update_subpopulation_data()
         worst_solution = new_worst_solution;
 
     avg_fitness = new_avg_fitness;
+    deviation = calculate_deviation();
 }
 
 void Subpopulation::normalize_colours(Graph& first_parent_graph, Graph& second_parent_graph)
@@ -405,7 +414,6 @@ void Subpopulation::process_optimal_mixing()
                 // std::cout << "\nChanged individual and donor are the same: ";
 
                 if (std::find(donors_tried.begin(), donors_tried.end(), false) == donors_tried.end()) {
-                    std::cout << "\nNo more unique donors for this individual";
                     skip_cluster = true;
                     break;
                 }
