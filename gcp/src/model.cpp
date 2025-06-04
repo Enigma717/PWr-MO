@@ -241,9 +241,9 @@ Graph Model::solve_simulated_annealing()
     return solution;
 }
 
-Solution& Model::solve_genetic(double& avg)
+Solution& Model::solve_genetic()
 {
-    return genetic_solver.solve(avg);
+    return genetic_solver.solve();
 }
 
 void Model::solve_ltgomea()

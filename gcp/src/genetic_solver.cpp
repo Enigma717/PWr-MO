@@ -19,7 +19,7 @@ namespace
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
     constexpr std::size_t generation_limit {100'000uz};
-    constexpr std::size_t ffe_limit {100'000uz};
+    constexpr std::size_t ffe_limit {200'000uz};
     constexpr double random_initialization_probability {0.9};
 
     constexpr std::pair<std::size_t, std::size_t> get_second(std::pair<std::size_t, std::size_t> elem)
@@ -66,7 +66,7 @@ bool GeneticSolver::check_reached_gen_limit()
     return generation_number >= generation_limit;
 }
 
-void GeneticSolver::evaluate_population(std::ofstream& csv_file)
+void GeneticSolver::evaluate_population(std::ofstream& plot_file)
 {
     auto new_best_solution {&*std::min_element(population.begin(), population.end())};
     auto new_worst_solution {&*std::max_element(population.begin(), population.end())};
@@ -95,10 +95,11 @@ void GeneticSolver::evaluate_population(std::ofstream& csv_file)
         std::cout << print_generation_info();
 
     if (generation_number % 10 == 0) {
-        csv_file << generation_number << "; "
+        plot_file << generation_number << "; "
             << best_solution->fitness << "; "
             << worst_solution->fitness << "; "
-            << avg_fitness << "\n";
+            << avg_fitness << "; "
+            << deviation() << "\n";
     }
 }
 
@@ -112,17 +113,17 @@ double GeneticSolver::deviation()
     return sqrt(sum / population_size);
 }
 
-Solution& GeneticSolver::solve(double& avg)
+Solution& GeneticSolver::solve()
 {
     std::ofstream results_file;
     std::stringstream results_path;
-    results_path << "./csv/results/ga/ga_results_" << model_ref.model_params.instance_name << ".csv";
+    results_path << "./csv/results/ga/results_" << model_ref.model_params.instance_name << ".csv";
     results_file.open(results_path.str(), std::ios_base::app);
 
     std::ofstream plot_file;
     std::stringstream plot_data_path;
-    plot_data_path << "./csv/results/ga/ga_plot_" << model_ref.model_params.instance_name << ".csv";
-    plot_file.open(plot_data_path.str());
+    plot_data_path << "./csv/results/ga/plot_" << model_ref.model_params.instance_name << ".csv";
+    plot_file.open(plot_data_path.str(), std::ios_base::app);
 
     if(!results_file.is_open()) {
         perror("Error opening results file");
@@ -134,7 +135,8 @@ Solution& GeneticSolver::solve(double& avg)
         exit(EXIT_FAILURE);
     }
 
-    plot_file << "gen; best; worst; avg\n";
+    results_file << "gen; best; worst; avg; dev; tour; cp; mp; time\n";
+    plot_file << "gen; best; worst; avg; dev\n";
 
     std::cout << "\n\n===========================\n\n";
 
@@ -162,7 +164,6 @@ Solution& GeneticSolver::solve(double& avg)
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 
-
     results_file << generation_number << "; "
         << best_solution->fitness << "; "
         << worst_solution->fitness << "; "
@@ -176,12 +177,11 @@ Solution& GeneticSolver::solve(double& avg)
     plot_file << generation_number << "; "
         << best_solution->fitness << "; "
         << worst_solution->fitness << "; "
-        << avg_fitness << "\n";
+        << avg_fitness << "; "
+        << deviation() << "\n";
 
     plot_file.close();
     results_file.close();
-
-    avg = avg_fitness;
 
     return *best_solution;
 }

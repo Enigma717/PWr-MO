@@ -46,7 +46,7 @@ public:
     Graph solve_greedy();
     Graph solve_greedy(Solution& solution);
     Graph solve_simulated_annealing();
-    Solution& solve_genetic(double& avg);
+    Solution& solve_genetic();
     void solve_ltgomea();
     void solve_p3();
 

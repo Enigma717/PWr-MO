@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     };
 
     for (const auto& filename : files) {
-        for (int l = 0; l < 20; l++) {
+        for (int l = 0; l < 10; l++) {
             Model model;
 
             std::stringstream path;
@@ -66,15 +66,17 @@ int main(int argc, char* argv[])
 
     // for (const auto& filename : files) {
     //     for (int l = 0; l < 1; l++) {
+    //         Model model;
+
     //         std::stringstream path;
     //         path << "./instances/" << filename << ".col";
 
     //         model.load_file(path.str());
-
-    //         double avg {0.0};
+    //         std::cout << "\n\n========[ Instance ]========\n\n";
+    //         std::cout << model.print_model_parms();
 
     //         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    //         Solution solution {model.solve_genetic(avg)};
+    //         Solution solution {model.solve_genetic()};
     //         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     //         const auto elapsed_time {(std::chrono::duration<double>(end - begin))};
 

@@ -20,16 +20,16 @@ public:
 
     double deviation();
     void initialize_population(PopulationType population_type, std::size_t size);
-    void evaluate_population(std::ofstream& csv_file);
-    Solution& solve(double& avg);
+    void evaluate_population(std::ofstream& plot_file);
+    Solution& solve();
 
 
     std::size_t fitness_evaluations {0uz};
     std::size_t generation_number {0uz};
     std::size_t population_size {200uz};
     std::size_t tournament_size {2uz};
-    double crossing_probability {0.8};
-    double mutation_probability {0.2};
+    double crossing_probability {0.6};
+    double mutation_probability {0.25};
     CrossoverType crossover_type {CrossoverType::partition};
 
 private:

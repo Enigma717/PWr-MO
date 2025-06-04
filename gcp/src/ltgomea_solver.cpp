@@ -17,7 +17,7 @@ namespace
     constexpr std::size_t subpopulation_base_size {2uz};
     constexpr std::size_t ltgomea_base_iterations {4uz};
     constexpr std::size_t iterations_limit {100'000uz};
-    constexpr std::size_t ffe_limit {1'00'000uz};
+    constexpr std::size_t ffe_limit {1'000'000uz};
 }
 
 LTGOMEASolver::LTGOMEASolver(Model& model_ref) : model_ref{model_ref} {}
