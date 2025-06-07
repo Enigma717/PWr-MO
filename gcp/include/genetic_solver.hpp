@@ -18,7 +18,7 @@ public:
     GeneticSolver() = delete;
     GeneticSolver(Model& model_ref);
 
-    double deviation();
+    double calculate_deviation();
     void initialize_population(PopulationType population_type, std::size_t size);
     void evaluate_population(std::ofstream& plot_file);
     Solution& solve();
@@ -28,8 +28,8 @@ public:
     std::size_t generation_number {0uz};
     std::size_t population_size {200uz};
     std::size_t tournament_size {2uz};
-    double crossing_probability {0.6};
-    double mutation_probability {0.25};
+    double crossing_probability {0.7};
+    double mutation_probability {0.2};
     CrossoverType crossover_type {CrossoverType::partition};
 
 private:
@@ -38,6 +38,7 @@ private:
     Solution* best_solution;
     Solution* worst_solution;
     double avg_fitness;
+    double deviation;
 
     std::string print_generation_info();
     bool check_reached_optimum();

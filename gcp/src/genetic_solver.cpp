@@ -19,7 +19,7 @@ namespace
     constexpr std::size_t parents_pair_step {2uz};
     constexpr std::size_t print_info_threshold {100uz};
     constexpr std::size_t generation_limit {100'000uz};
-    constexpr std::size_t ffe_limit {200'000uz};
+    constexpr std::size_t ffe_limit {1'000'000uz};
     constexpr double random_initialization_probability {0.9};
 
     constexpr std::pair<std::size_t, std::size_t> get_second(std::pair<std::size_t, std::size_t> elem)
@@ -45,7 +45,7 @@ std::string GeneticSolver::print_generation_info()
         << "\t||\tBest fitness: " << best_solution->fitness
         << " \t||\tWorst fitness: " << worst_solution->fitness
         << "\t||\tAverage fitness: " << avg_fitness
-        << "\t||\tPopulation size: " << population_size
+        << "\t||\tDeviation: " << deviation
         << "\t||\tFFE: " << fitness_evaluations << "\n";
 
     return log.str();
@@ -90,6 +90,7 @@ void GeneticSolver::evaluate_population(std::ofstream& plot_file)
     }
 
     avg_fitness = new_avg_fitness;
+    deviation = calculate_deviation();
 
     if (generation_number % print_info_threshold == 0 && generation_number != 0)
         std::cout << print_generation_info();
@@ -97,13 +98,12 @@ void GeneticSolver::evaluate_population(std::ofstream& plot_file)
     if (generation_number % 10 == 0) {
         plot_file << generation_number << "; "
             << best_solution->fitness << "; "
-            << worst_solution->fitness << "; "
             << avg_fitness << "; "
-            << deviation() << "\n";
+            << deviation << "\n";
     }
 }
 
-double GeneticSolver::deviation()
+double GeneticSolver::calculate_deviation()
 {
     double sum {0.0};
 
@@ -135,8 +135,8 @@ Solution& GeneticSolver::solve()
         exit(EXIT_FAILURE);
     }
 
-    results_file << "gen; best; worst; avg; dev; tour; cp; mp; time\n";
-    plot_file << "gen; best; worst; avg; dev\n";
+    results_file << "gen; best; worst; avg; dev; tour; cp; mp; ffe; time\n";
+    plot_file << "gen; best; avg; dev\n";
 
     std::cout << "\n\n===========================\n\n";
 
@@ -168,17 +168,17 @@ Solution& GeneticSolver::solve()
         << best_solution->fitness << "; "
         << worst_solution->fitness << "; "
         << avg_fitness << "; "
-        << deviation() << "; "
+        << deviation << "; "
         << tournament_size << "; "
         << crossing_probability << "; "
         << mutation_probability << "; "
+        << fitness_evaluations << "; "
         << elapsed_time << "\n";
 
     plot_file << generation_number << "; "
         << best_solution->fitness << "; "
-        << worst_solution->fitness << "; "
         << avg_fitness << "; "
-        << deviation() << "\n";
+        << deviation << "\n";
 
     plot_file.close();
     results_file.close();
