@@ -23,7 +23,6 @@ public:
     void update_indirect_neighbourship_with(Vertex& new_neighbour);
     void update_colour(std::size_t new_colour);
 
-// private:
     std::size_t id {0};
     std::size_t colour {0};
     std::set<Vertex*> neighbours;

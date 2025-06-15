@@ -59,5 +59,4 @@ public:
 
 private:
     Model& model_ref;
-
 };

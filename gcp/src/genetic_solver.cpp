@@ -113,7 +113,7 @@ double GeneticSolver::calculate_deviation()
     return sqrt(sum / population_size);
 }
 
-Solution& GeneticSolver::solve()
+void GeneticSolver::solve()
 {
     std::ofstream results_file;
     std::stringstream results_path;
@@ -183,7 +183,8 @@ Solution& GeneticSolver::solve()
     plot_file.close();
     results_file.close();
 
-    return *best_solution;
+    std::cout << "\n\nFinal solution: [" << best_solution << "] | " << *best_solution;
+    std::cout << "\nGenerations: " << generation_number << " | fitness evaluations: " << fitness_evaluations;
 }
 
 void GeneticSolver::initialize_population(

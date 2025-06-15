@@ -21,7 +21,7 @@ public:
     double calculate_deviation();
     void initialize_population(PopulationType population_type, std::size_t size);
     void evaluate_population(std::ofstream& plot_file);
-    Solution& solve();
+    void solve();
 
 
     std::size_t fitness_evaluations {0uz};
