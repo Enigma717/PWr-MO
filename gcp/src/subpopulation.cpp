@@ -380,21 +380,16 @@ void Subpopulation::process_optimal_mixing()
     offsprings.resize(subpopulation_size);
 
     for (std::size_t i {0}; i < subpopulation_size; i++) {
-        // std::cout << "\n========[NOWA ITERACJA]========\n";
-
         std::uniform_int_distribution<std::size_t> int_distribution(0, subpopulation_size - 1);
         const auto generated_index {int_distribution(model_ref.rng)};
 
-        // std::cout << "\nGenerated index: " << generated_index;
         offsprings.at(i) = individuals.at(i);
         auto& current_offspring {offsprings.at(i)};
         Solution backup = current_offspring;
         bool skip_cluster {false};
 
-        // std::cout << "\nGOM clusters: [\n";
         for (const auto& cluster : lt_builder.clusters) {
             skip_cluster = false;
-            // std::cout << "\n[" << cluster << "]\n";
 
             auto* donor {&individuals.at(generated_index)};
 
@@ -402,99 +397,30 @@ void Subpopulation::process_optimal_mixing()
             donors_tried.at(i) = true;
             donors_tried.at(generated_index) = true;
 
-            // std::cout << "\n[BEFORE] Donors_tried: [";
-            // for (const auto xd : donors_tried)
-                // std::cout << " " << xd;
-            // std::cout << "]\n";
-
-            // print_individuals();
-            // std::cout << "\n[INSIDE]Changed individual colors: [" << current_offspring.graph.colours << "]";
-            // std::cout << "\n[INSIDE]Drawn donor colors: [" << donor->graph.colours << "]";
             while (model_ref.check_for_equality_in_cluster(current_offspring, *donor, cluster)) {
-                // std::cout << "\nChanged individual and donor are the same: ";
 
                 if (std::find(donors_tried.begin(), donors_tried.end(), false) == donors_tried.end()) {
                     skip_cluster = true;
                     break;
                 }
-                // std::cout << "\n[INSIDE]Changed individual: [" << &current_offspring << "]: " << current_offspring;
-                // std::cout << "\n[INSIDE]Drawn donor: [" << donor << "]: " << *donor;
 
                 const auto new_index {int_distribution(model_ref.rng)};
                 donors_tried.at(new_index) = true;
-                // std::cout << "\nNew index: " << new_index;
-                // std::cout << "\nIndividuals size: " << individuals.size();
                 donor = &individuals.at(new_index);
-                // std::cout << "\n[NEW]Changed individual: [" << &changed << "]: " << changed;
-                // std::cout << "\n[NEW]Drawn donor: [" << donor << "]: " << *donor;
-
-                // std::cout << "\n[AFTER] Donors_tried: [";
-                // for (const auto xd : donors_tried)
-                //     std::cout << " " << xd;
-                // std::cout << "]\n";
             }
 
             if (skip_cluster)
                 continue;
 
-            // std::cout << "\nChanged individual: [" << &changed << "]: " << changed;
-            // std::cout << "\nBackup: [" << &backup << "]: " << backup;
-            // std::cout << "\nDrawn donor: [" << donor << "]: " << *donor;
-
-            // std::cout << "\nColors from ind and donor for given cluster: ";
-            // std::cout << "\nChanged: [ ";
-            // for (const auto value : cluster) {
-            //     std::cout << " " << *changed.graph.colours.at(value) << ",";
-            // }
-            // std::cout << " ]";
-
-            // std::cout << "\nBackup: [ ";
-            // for (const auto value : cluster) {
-            //     std::cout << " " << *backup.graph.colours.at(value) << ",";
-            // }
-            // std::cout << " ]";
-
-            // std::cout << "\nDonor: [ ";;
-            // for (const auto value : cluster) {
-            //     std::cout << " " << *donor->graph.colours.at(value) << ",";
-            // }
-            // std::cout << " ]";
-
-
-            // std::cout << "\n[BEFORE] Donor: [" << donor << "]: " << *donor;
-            // std::cout << "\n[BEFORE] Offpsring: [" << &current_offspring << "]: " << current_offspring;
-            // std::cout << "\n[BEFORE] Backup: [" << &backup << "]: " << backup;
-
-            // std::cout << "\nTrying to donate";
-            for (const auto value : cluster) {
+            for (const auto value : cluster)
                 current_offspring.graph.vertices.at(value).colour = donor->graph.vertices.at(value).colour;
-            }
 
             current_offspring.fitness = fitness_evaluation(current_offspring);
 
-            // std::cout << "\n[MEANWHILE] Donor: [" << donor << "]: " << *donor;
-            // std::cout << "\n[MEANWHILE] Offspring: [" << &current_offspring << "]: " << current_offspring;
-            // std::cout << "\n[MEANWHILE] Backup: [" << &backup << "]: " << backup;
-
-            if (current_offspring.fitness > backup.fitness) {
-                // std::cout << "\nWOW! Dubstep remix!\n";
+            if (current_offspring.fitness > backup.fitness)
                 current_offspring = backup;
-            }
-            else {
+            else
                 backup = current_offspring;
-            }
-
-            // std::cout << "\n[AFTER] Donor: [" << donor << "]: " << *donor;
-            // std::cout << "\n[AFTER] Offspring: [" << &current_offspring << "]: " << current_offspring;
-            // std::cout << "\n[AFTER] Backup: [" << &backup << "]: " << backup;
         }
-        // std::cout << "\n]\n\n";
-
     }
-
-    // std::cout << "\nOffsprings at the end:";
-    // for (const auto& offspring : offsprings) {
-        // std::cout << "\nOffspring [ " << &offspring << "]: " << offspring;
-    // }
-    // std::cout << "\n";
 }

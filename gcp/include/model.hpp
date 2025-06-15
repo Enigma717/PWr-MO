@@ -50,7 +50,6 @@ public:
     void solve_ltgomea();
     void solve_p3();
 
-public:
     ModelParams model_params;
     Loader loader;
     std::unique_ptr<Graph> base_graph;

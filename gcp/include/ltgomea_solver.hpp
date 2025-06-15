@@ -19,7 +19,7 @@ public:
     bool is_optimum_reached {false};
 
     std::uint8_t crossover_code {0u};
-    CrossoverType crossover_type {CrossoverType::optimal_mixing};
+    CrossoverType crossover_type {CrossoverType::partition};
 
 private:
     Model& model_ref;
